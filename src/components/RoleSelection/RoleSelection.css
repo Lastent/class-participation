@@ -1,0 +1,103 @@
+/* Role Selection Screen Styles */
+
+.role-selection-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.role-selection-content {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.app-title {
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.app-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  margin-bottom: 50px;
+  line-height: 1.5;
+}
+
+.role-buttons {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.role-button {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  padding: 30px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.role-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.teacher-button:hover {
+  background: linear-gradient(135deg, #ff7b7b 0%, #ff9a9e 100%);
+  color: white;
+}
+
+.student-button:hover {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.button-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.button-text h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.button-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.role-button:hover .button-text p {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 2rem;
+  }
+  
+  .role-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .role-button {
+    min-width: 250px;
+  }
+}
