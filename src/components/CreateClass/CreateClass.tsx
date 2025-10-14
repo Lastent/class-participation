@@ -5,18 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { firebaseService } from '../../services/firebaseService';
 import { generateClassCode } from '../../utils/codeUtils';
 import './CreateClass.css';
+import { useTranslation } from 'react-i18next';
 
 const CreateClass: React.FC = () => {
   const [className, setClassName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!className.trim()) {
-      setError('Please enter a class name');
+      setError(t('createClass.errors.emptyName'));
       return;
     }
 
@@ -44,7 +46,7 @@ const CreateClass: React.FC = () => {
       
     } catch (err) {
       console.error('Error creating class:', err);
-      setError('Failed to create class. Please try again.');
+        setError(t('createClass.errors.createFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -58,23 +60,21 @@ const CreateClass: React.FC = () => {
     <div className="create-class-container">
       <div className="create-class-content">
         <button className="back-button" onClick={handleBack}>
-          ← Back
+          ← {t('buttons.back')}
         </button>
-        
-        <h1 className="page-title">Create New Class</h1>
-        <p className="page-description">
-          Enter a name for your class to get started
-        </p>
+
+        <h1 className="page-title">{t('createClass.title')}</h1>
+        <p className="page-description">{t('createClass.description')}</p>
 
         <form onSubmit={handleCreateClass} className="create-class-form">
           <div className="input-group">
-            <label htmlFor="className">Class Name</label>
+            <label htmlFor="className">{t('createClass.labelClassName')}</label>
             <input
               id="className"
               type="text"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              placeholder="e.g., Math 101, Physics Lab A"
+              placeholder={t('createClass.placeholderClassName')}
               maxLength={50}
               disabled={isLoading}
             />
@@ -94,20 +94,20 @@ const CreateClass: React.FC = () => {
             {isLoading ? (
               <>
                 <span className="loading-spinner"></span>
-                Creating Class...
+                {t('buttons.creating')}
               </>
             ) : (
-              'Create Class'
+              t('buttons.createClass')
             )}
           </button>
         </form>
 
         <div className="info-section">
-          <h3>What happens next?</h3>
+          <h3>{t('createClass.whatNextTitle')}</h3>
           <ul>
-            <li>A unique 6-character code will be generated</li>
-            <li>Students can join using this code</li>
-            <li>You'll see real-time updates of student activity</li>
+            {((t('createClass.whatNext', { returnObjects: true }) as unknown) as string[]).map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
           </ul>
         </div>
       </div>

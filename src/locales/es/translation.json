@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "Interacción en el Aula",
+    "description": "Herramienta de comunicación en tiempo real para profesores y estudiantes"
+  },
+  "role": {
+    "teacher": {
+      "label": "Soy Profesor",
+      "description": "Crear y gestionar una clase"
+    },
+    "student": {
+      "label": "Soy Estudiante",
+      "description": "Unirse a una clase con código"
+    }
+  },
+  "buttons": {
+    "back": "Atrás",
+    "createClass": "Crear Clase",
+    "joining": "Uniéndose a la clase...",
+    "creating": "Creando clase...",
+    "joinClass": "Unirse a la Clase",
+    "leaveClass": "Salir de la Clase",
+    "showQR": "Mostrar QR",
+    "hideQR": "Ocultar QR",
+    "endClass": "Finalizar Clase",
+    "askQuestion": "Hacer una Pregunta",
+    "submitQuestion": "Enviar Pregunta",
+    "cancel": "Cancelar",
+    "lowerHand": "Bajar la mano",
+    "raiseHand": "Levantar la mano"
+  },
+  "createClass": {
+    "title": "Crear Nueva Clase",
+    "description": "Ingrese un nombre para su clase para comenzar",
+    "labelClassName": "Nombre de la Clase",
+    "placeholderClassName": "p. ej., Matemáticas 101, Laboratorio de Física A",
+    "whatNextTitle": "¿Qué sucede después?",
+    "whatNext": [
+      "Se generará un código único de 6 caracteres",
+      "Los estudiantes pueden unirse usando este código",
+      "Verá actualizaciones en tiempo real de la actividad de los estudiantes"
+    ],
+    "errors": {
+      "emptyName": "Por favor ingrese un nombre de clase",
+      "createFailed": "No se pudo crear la clase. Inténtalo de nuevo."
+    }
+  },
+  "joinClass": {
+    "title": "Unirse a la Clase",
+    "description": "Ingrese su nombre y el código de clase de 6 caracteres proporcionado por su profesor",
+    "labelName": "Tu Nombre",
+    "placeholderName": "Ingrese su nombre completo",
+    "labelCode": "Código de Clase",
+    "placeholderCode": "Código de 6 caracteres (p. ej., ABC123)",
+    "inputHint": "Pídele a tu profesor el código de 6 caracteres",
+    "errors": {
+      "emptyName": "Por favor ingrese su nombre",
+      "emptyCode": "Por favor ingrese un código de clase",
+      "invalidCode": "El código de clase debe tener 6 caracteres",
+      "notFound": "Clase no encontrada. Por favor verifique el código e intente nuevamente.",
+      "joinFailed": "No se pudo unir a la clase. Inténtalo de nuevo."
+    }
+  },
+  "teacherClass": {
+    "students": "Estudiantes",
+    "noStudents": "Ningún estudiante se ha unido aún",
+    "shareCode": "Comparte el código de la clase: {{code}}",
+    "handsRaised": "{{count}} mano",
+    "handsRaised_plural": "{{count}} manos",
+    "questions": "Preguntas",
+    "noQuestions": "Aún no hay preguntas",
+    "studentsCount": "Estudiantes ({{count}})",
+    "questionsCount": "Preguntas ({{count}})",
+    "pending": "Pendiente",
+    "answered": "Respondida",
+    "pending_plural": "Pendiente",
+    "answered_plural": "Respondidas",
+    "qrInfo": "Los estudiantes pueden escanear este código QR para unirse",
+    "error": {
+      "notFound": "Clase no encontrada",
+      "loadFailed": "Error al cargar los detalles de la clase"
+    }
+  },
+  "studentClass": {
+    "welcome": "Bienvenido, {{name}}",
+    "code": "Código: {{code}}",
+    "myQuestions": "Mis Preguntas ({{count}})",
+    "noMyQuestions": "Aún no has hecho preguntas",
+    "askDialogTitle": "Hacer una Pregunta",
+    "askDialogPlaceholder": "Escribe tu pregunta aquí...",
+    "submitSuccess": "Pregunta enviada",
+    "submitFailed": "Error al enviar la pregunta",
+    "leaveConfirm": "¿Estás seguro que quieres salir de esta clase?",
+    "leave": "Salir de la Clase"
+  },
+  "common": {
+    "error": "Error",
+    "backToHome": "Volver al inicio"
+  }
+}

@@ -3,9 +3,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RoleSelection.css';
+import { useTranslation } from 'react-i18next';
 
 const RoleSelection: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleTeacherSelect = () => {
     navigate('/create-class');
@@ -18,10 +20,8 @@ const RoleSelection: React.FC = () => {
   return (
     <div className="role-selection-container">
       <div className="role-selection-content">
-        <h1 className="app-title">Classroom Interaction</h1>
-        <p className="app-description">
-          Real-time classroom communication tool for teachers and students
-        </p>
+        <h1 className="app-title">{t('app.title')}</h1>
+        <p className="app-description">{t('app.description')}</p>
         
         <div className="role-buttons">
           <button 
@@ -30,8 +30,8 @@ const RoleSelection: React.FC = () => {
           >
             <div className="button-icon">👨‍🏫</div>
             <div className="button-text">
-              <h2>I'm a Teacher</h2>
-              <p>Create and manage a class</p>
+              <h2>{t('role.teacher.label')}</h2>
+              <p>{t('role.teacher.description')}</p>
             </div>
           </button>
           
@@ -41,8 +41,8 @@ const RoleSelection: React.FC = () => {
           >
             <div className="button-icon">👨‍🎓</div>
             <div className="button-text">
-              <h2>I'm a Student</h2>
-              <p>Join a class with code</p>
+              <h2>{t('role.student.label')}</h2>
+              <p>{t('role.student.description')}</p>
             </div>
           </button>
         </div>

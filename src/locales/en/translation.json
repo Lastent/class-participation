@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "Classroom Interaction",
+    "description": "Real-time classroom communication tool for teachers and students"
+  },
+  "role": {
+    "teacher": {
+      "label": "I'm a Teacher",
+      "description": "Create and manage a class"
+    },
+    "student": {
+      "label": "I'm a Student",
+      "description": "Join a class with code"
+    }
+  },
+  "buttons": {
+    "back": "Back",
+    "createClass": "Create Class",
+    "joining": "Joining Class...",
+    "creating": "Creating Class...",
+    "joinClass": "Join Class",
+    "leaveClass": "Leave Class",
+    "showQR": "Show QR",
+    "hideQR": "Hide QR",
+    "endClass": "End Class",
+    "askQuestion": "Ask Question",
+    "submitQuestion": "Submit Question",
+    "cancel": "Cancel",
+    "lowerHand": "Lower Hand",
+    "raiseHand": "Raise Hand"
+  },
+  "createClass": {
+    "title": "Create New Class",
+    "description": "Enter a name for your class to get started",
+    "labelClassName": "Class Name",
+    "placeholderClassName": "e.g., Math 101, Physics Lab A",
+    "whatNextTitle": "What happens next?",
+    "whatNext": [
+      "A unique 6-character code will be generated",
+      "Students can join using this code",
+      "You'll see real-time updates of student activity"
+    ],
+    "errors": {
+      "emptyName": "Please enter a class name",
+      "createFailed": "Failed to create class. Please try again."
+    }
+  },
+  "joinClass": {
+    "title": "Join Class",
+    "description": "Enter your name and the 6-character class code provided by your teacher",
+    "labelName": "Your Name",
+    "placeholderName": "Enter your full name",
+    "labelCode": "Class Code",
+    "placeholderCode": "6-character code (e.g., ABC123)",
+    "inputHint": "Ask your teacher for the 6-character class code",
+    "errors": {
+      "emptyName": "Please enter your name",
+      "emptyCode": "Please enter a class code",
+      "invalidCode": "Class code must be 6 characters long",
+      "notFound": "Class not found. Please check the code and try again.",
+      "joinFailed": "Failed to join class. Please try again."
+    }
+  },
+  "teacherClass": {
+    "students": "Students",
+    "noStudents": "No students have joined yet",
+    "shareCode": "Share the class code: {{code}}",
+    "handsRaised": "{{count}} hand",
+    "handsRaised_plural": "{{count}} hands",
+    "questions": "Questions",
+    "noQuestions": "No questions yet",
+    "studentsCount": "Students ({{count}})",
+    "questionsCount": "Questions ({{count}})",
+    "pending": "Pending",
+    "answered": "Answered",
+    "pending_plural": "Pending",
+    "answered_plural": "Answered",
+    "qrInfo": "Students can scan this QR code to join",
+    "error": {
+      "notFound": "Class not found",
+      "loadFailed": "Failed to load class details"
+    }
+  },
+  "studentClass": {
+    "welcome": "Welcome, {{name}}",
+    "code": "Code: {{code}}",
+    "myQuestions": "My Questions ({{count}})",
+    "noMyQuestions": "You haven't asked any questions yet",
+    "askDialogTitle": "Ask a Question",
+    "askDialogPlaceholder": "Type your question here...",
+    "submitSuccess": "Question submitted",
+    "submitFailed": "Failed to submit question",
+    "leaveConfirm": "Are you sure you want to leave this class?",
+    "leave": "Leave Class"
+  },
+  "common": {
+    "error": "Error",
+    "backToHome": "Back to Home"
+  }
+}
