@@ -1,4 +1,5 @@
 // Notification service for browser/OS notifications
+import i18n from 'i18next';
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -52,10 +53,13 @@ export class NotificationService {
   showHandRaisedNotification(studentName: string, classCode: string): void {
     if (this.permission !== 'granted') return;
 
-    const notification = new Notification('✋ Hand Raised!', {
-      body: `${studentName} has raised their hand in class ${classCode}`,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+    const title = i18n?.t ? i18n.t('notifications.handRaised.title') : '✋ Hand Raised!';
+    const body = i18n?.t ? i18n.t('notifications.handRaised.body', { studentName, classCode }) : `${studentName} has raised their hand in class ${classCode}`;
+
+    const notification = new Notification(title, {
+      body,
+      icon: '/icons/notification-icon.png',
+      badge: '/icons/notification-badge.png',
       tag: `hand-raised-${studentName}`, // Prevents duplicate notifications
       requireInteraction: true // Keeps notification visible until user interacts
     });
@@ -83,10 +87,14 @@ export class NotificationService {
       ? questionText.substring(0, 97) + '...' 
       : questionText;
 
-    const notification = new Notification('❓ New Question!', {
-      body: `${studentName} asked: "${truncatedQuestion}" in class ${classCode}`,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+
+    const title = i18n?.t ? i18n.t('notifications.question.title') : '❓ New Question!';
+    const body = i18n?.t ? i18n.t('notifications.question.body', { studentName, question: truncatedQuestion, classCode }) : `${studentName} asked: "${truncatedQuestion}" in class ${classCode}`;
+
+    const notification = new Notification(title, {
+      body,
+      icon: '/icons/notification-icon.png',
+      badge: '/icons/notification-badge.png',
       tag: `question-${Date.now()}`, // Allow multiple question notifications
       requireInteraction: true
     });

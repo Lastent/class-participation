@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './i18n';
+import OfflineBanner from './components/OfflineBanner/OfflineBanner';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -10,6 +11,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
+    <OfflineBanner />
     <App />
   </React.StrictMode>
 );

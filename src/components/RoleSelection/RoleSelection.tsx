@@ -8,6 +8,9 @@ import { useTranslation } from 'react-i18next';
 const RoleSelection: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  React.useEffect(() => {
+    document.title = t('app.title');
+  }, [t]);
 
   const handleTeacherSelect = () => {
     navigate('/create-class');

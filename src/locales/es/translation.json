@@ -62,6 +62,7 @@
     }
   },
   "teacherClass": {
+    "pageTitle": "Profesor - {{className}}",
     "students": "Estudiantes",
     "noStudents": "Ningún estudiante se ha unido aún",
     "shareCode": "Comparte el código de la clase: {{code}}",
@@ -82,6 +83,7 @@
     }
   },
   "studentClass": {
+    "pageTitle": "Estudiante - {{className}}",
     "welcome": "Bienvenido, {{name}}",
     "code": "Código: {{code}}",
     "myQuestions": "Mis Preguntas ({{count}})",
@@ -96,5 +98,19 @@
   "common": {
     "error": "Error",
     "backToHome": "Volver al inicio"
+  }
+  ,
+  "offline": {
+    "banner": "Estás sin conexión — algunas funciones pueden no estar disponibles. Los cambios se sincronizarán cuando vuelvas a estar en línea."
+  },
+  "notifications": {
+    "handRaised": {
+      "title": "✋ ¡Mano levantada!",
+      "body": "{{studentName}} ha levantado la mano en la clase {{classCode}}"
+    },
+    "question": {
+      "title": "❓ Nueva Pregunta!",
+      "body": "{{studentName}} preguntó: \"{{question}}\" en la clase {{classCode}}"
+    }
   }
 }
