@@ -2,7 +2,7 @@
 
 
 
-A real-time classroom interaction tool that allows teachers and students to communicate effectively during class sessions. This is a React TypeScript version of your original Kotlin Android app.This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time classroom interaction tool that allows teachers and students to communicate effectively during class sessions. This is a React TypeScript version of your original Kotlin Android app.This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). 
 
 
 
