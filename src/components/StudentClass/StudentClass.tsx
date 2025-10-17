@@ -5,6 +5,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { firebaseService } from '../../services/firebaseService';
 import { Question } from '../../types';
 import './StudentClass.css';
+import { useTranslation } from 'react-i18next';
 
 const StudentClass: React.FC = () => {
   const { classCode } = useParams<{ classCode: string }>();
@@ -20,6 +21,7 @@ const StudentClass: React.FC = () => {
   const [questionText, setQuestionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
   
   // Refs for cleanup
   const questionsUnsubscribe = useRef<(() => void) | null>(null);
@@ -51,13 +53,13 @@ const StudentClass: React.FC = () => {
         if (classData) {
           setClassName(classData.name);
         } else {
-          setError('Class not found');
+          setError(t('teacherClass.error.notFound'));
         }
       })
       .catch(err => {
         console.error('Student: Error fetching class details:', err);
         // Don't set error here, as it's not critical for student functionality
-        setClassName('Class'); // fallback name
+        setClassName(t('studentClass.pageTitle', { className: 'Class' })); // fallback name
       });
 
     // Set up real-time listener for questions with error handling
@@ -78,7 +80,7 @@ const StudentClass: React.FC = () => {
         questionsUnsubscribe.current();
       }
     };
-  }, [classCode, location.state, navigate]);
+  }, [classCode, location.state, navigate, t]);
 
   const handleHandToggle = async () => {
     try {
@@ -87,7 +89,7 @@ const StudentClass: React.FC = () => {
       setHandRaised(newHandState);
     } catch (err) {
       console.error('Error updating hand raised status:', err);
-      setError('Failed to update hand status');
+      setError(t('studentClass.submitFailed'));
     }
   };
 
@@ -106,14 +108,14 @@ const StudentClass: React.FC = () => {
       setShowQuestionDialog(false);
     } catch (err) {
       console.error('Error submitting question:', err);
-      setError('Failed to submit question');
+      setError(t('studentClass.submitFailed'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleLeaveClass = () => {
-    if (window.confirm('Are you sure you want to leave this class?')) {
+    if (window.confirm(t('studentClass.leaveConfirm'))) {
       firebaseService.removeStudent(classCode!, studentId).finally(() => {
         navigate('/');
       });
@@ -126,9 +128,9 @@ const StudentClass: React.FC = () => {
     return (
       <div className="student-class-container">
         <div className="error-state">
-          <h2>Error</h2>
+          <h2>{t('common.error')}</h2>
           <p>{error}</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+          <button onClick={() => navigate('/')}>{t('common.backToHome')}</button>
         </div>
       </div>
     );
@@ -140,13 +142,13 @@ const StudentClass: React.FC = () => {
         <div className="class-info">
           <h1>{className}</h1>
           <div className="student-info">
-            <span>Welcome, <strong>{studentName}</strong></span>
-            <span className="class-code">Code: {classCode}</span>
+            <span>{t('studentClass.welcome', { name: studentName })}</span>
+            <span className="class-code">{t('studentClass.code', { code: classCode })}</span>
           </div>
         </div>
         
         <button className="leave-button" onClick={handleLeaveClass}>
-          Leave Class
+          {t('studentClass.leave')}
         </button>
       </header>
 
@@ -156,8 +158,8 @@ const StudentClass: React.FC = () => {
           onClick={handleHandToggle}
         >
           <span className="hand-icon">🖐️</span>
-          <span className="hand-text">
-            {handRaised ? 'Lower Hand' : 'Raise Hand'}
+            <span className="hand-text">
+            {handRaised ? t('buttons.lowerHand') : t('buttons.raiseHand')}
           </span>
         </button>
 
@@ -166,17 +168,17 @@ const StudentClass: React.FC = () => {
           onClick={() => setShowQuestionDialog(true)}
         >
           <span className="question-icon">❓</span>
-          <span className="question-text">Ask Question</span>
+          <span className="question-text">{t('buttons.askQuestion')}</span>
         </button>
       </div>
 
       <div className="my-questions-section">
-        <h2>My Questions ({myQuestions.length})</h2>
+        <h2>{t('studentClass.myQuestions', { count: myQuestions.length })}</h2>
         <div className="questions-list">
           {myQuestions.length === 0 ? (
             <div className="empty-state">
-              <p>You haven't asked any questions yet</p>
-              <p>Click "Ask Question" to submit a question to your teacher</p>
+              <p>{t('studentClass.noMyQuestions')}</p>
+              <p>{t('studentClass.askDialogPlaceholder')}</p>
             </div>
           ) : (
             myQuestions.map(question => (
@@ -184,7 +186,7 @@ const StudentClass: React.FC = () => {
                 <div className="question-text">{question.text}</div>
                 <div className="question-status">
                   <span className={`status-badge ${question.status || 'pending'}`}>
-                    {question.status === 'answered' ? '✓ Answered' : '⏳ Pending'}
+                    {question.status === 'answered' ? `✓ ${t('teacherClass.answered')}` : `⏳ ${t('teacherClass.pending')}`}
                   </span>
                 </div>
               </div>
@@ -197,7 +199,7 @@ const StudentClass: React.FC = () => {
         <div className="dialog-overlay" onClick={() => setShowQuestionDialog(false)}>
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
-              <h3>Ask a Question</h3>
+              <h3>{t('studentClass.askDialogTitle')}</h3>
               <button 
                 className="close-button"
                 onClick={() => setShowQuestionDialog(false)}
@@ -207,10 +209,10 @@ const StudentClass: React.FC = () => {
             </div>
             
             <form onSubmit={handleQuestionSubmit} className="question-form">
-              <textarea
+                <textarea
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
-                placeholder="Type your question here..."
+                placeholder={t('studentClass.askDialogPlaceholder')}
                 maxLength={500}
                 rows={4}
                 disabled={isSubmitting}
@@ -224,14 +226,14 @@ const StudentClass: React.FC = () => {
                   onClick={() => setShowQuestionDialog(false)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t('buttons.cancel')}
                 </button>
                 <button 
                   type="submit"
                   className="submit-button"
                   disabled={isSubmitting || !questionText.trim()}
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Question'}
+                  {isSubmitting ? t('buttons.submitting') : t('buttons.submitQuestion')}
                 </button>
               </div>
             </form>

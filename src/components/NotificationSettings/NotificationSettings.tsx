@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { notificationService } from '../../services/notificationService';
 import './NotificationSettings.css';
+import { useTranslation } from 'react-i18next';
 
 interface NotificationSettingsProps {
   onSettingsChange?: (enabled: boolean) => void;
@@ -15,6 +16,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
     setIsSupported(notificationService.isSupported());
     setPermission(notificationService.getPermissionStatus());
   }, []);
+  const { t } = useTranslation();
 
   const handleEnableNotifications = async () => {
     const granted = await notificationService.requestPermission();
@@ -35,10 +37,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
   if (!isSupported) {
     return (
       <div className="notification-settings">
-        <div className="notification-status unsupported">
-          <span className="status-icon">🚫</span>
-          <span>Notifications not supported in this browser</span>
-        </div>
+          <div className="notification-status unsupported">
+            <span className="status-icon">🚫</span>
+            <span>{t('notifications.unsupported')}</span>
+          </div>
       </div>
     );
   }
@@ -53,7 +55,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
       {permission === 'denied' && (
         <div className="notification-status denied">
           <span className="status-icon">❌</span>
-          <span>Notifications blocked. Enable in browser settings.</span>
+          <span>{t('notifications.blocked')}</span>
         </div>
       )}
       
@@ -63,21 +65,21 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
             className="enable-notifications-btn"
             onClick={handleEnableNotifications}
           >
-            Enable Notifications
+            {t('notifications.enable')}
           </button>
-          <small>Get notified when students raise hands or ask questions</small>
+          <small>{t('notifications.description')}</small>
         </div>
       )}
       
       {permission === 'granted' && (
-        <div className="notification-status enabled">
+          <div className="notification-status enabled">
           <span className="status-icon">✅</span>
-          <span>Notifications enabled</span>
+          <span>{t('notifications.enabled')}</span>
           <button 
             className="test-notification-btn"
             onClick={() => notificationService.showHandRaisedNotification('Test Student', 'TEST')}
           >
-            Test
+            {t('notifications.test')}
           </button>
         </div>
       )}

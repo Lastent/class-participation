@@ -27,7 +27,8 @@
     "submitQuestion": "Submit Question",
     "cancel": "Cancel",
     "lowerHand": "Lower Hand",
-    "raiseHand": "Raise Hand"
+    "raiseHand": "Raise Hand",
+    "submitting": "Submitting..."
   },
   "createClass": {
     "title": "Create New Class",
@@ -60,6 +61,13 @@
       "notFound": "Class not found. Please check the code and try again.",
       "joinFailed": "Failed to join class. Please try again."
     }
+    ,
+    "infoTitle": "What you can do in class:",
+    "infoList": [
+      "Raise your hand to get the teacher's attention",
+      "Ask questions that the teacher will see in real-time",
+      "Participate in classroom discussions"
+    ]
   },
   "teacherClass": {
     "pageTitle": "Teacher - {{className}}",
@@ -77,9 +85,20 @@
     "pending_plural": "Pending",
     "answered_plural": "Answered",
     "qrInfo": "Students can scan this QR code to join",
+    "endConfirm": "Are you sure you want to end this class? Students will be disconnected.",
+    "unknownStudent": "Unknown Student",
+    "questionsHint": "Students can ask questions that will appear here in real-time",
+    "handsRaised_suffix": "raised",
     "error": {
       "notFound": "Class not found",
       "loadFailed": "Failed to load class details"
+    }
+    ,
+    "actionTitles": {
+      "removeStudent": "Remove student",
+      "markAnswered": "Mark as answered",
+      "markPending": "Mark as pending",
+      "removeQuestion": "Remove question"
     }
   },
   "studentClass": {
@@ -111,6 +130,12 @@
     "question": {
       "title": "❓ New Question!",
       "body": "{{studentName}} asked: \"{{question}}\" in class {{classCode}}"
-    }
+    },
+    "unsupported": "Notifications not supported in this browser",
+    "blocked": "Notifications blocked. Enable in browser settings.",
+    "enable": "Enable Notifications",
+    "description": "Get notified when students raise hands or ask questions",
+    "enabled": "Notifications enabled",
+    "test": "Test"
   }
 }

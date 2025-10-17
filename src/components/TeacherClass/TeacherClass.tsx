@@ -9,6 +9,7 @@ import { Student, Question } from '../../types';
 import { formatDateTime, getRelativeTime } from '../../utils/dateUtils';
 import NotificationSettings from '../NotificationSettings/NotificationSettings';
 import './TeacherClass.css';
+import { useTranslation } from 'react-i18next';
 
 const TeacherClass: React.FC = () => {
   const { classCode } = useParams<{ classCode: string }>();
@@ -28,6 +29,7 @@ const TeacherClass: React.FC = () => {
   const previousStudents = useRef<Student[]>([]);
   const previousQuestions = useRef<Question[]>([]);
   const notificationsEnabledRef = useRef<boolean>(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!classCode) {
@@ -50,11 +52,11 @@ const TeacherClass: React.FC = () => {
         if (classData) {
           setClassName(classData.name);
         } else {
-          setError('Class not found');
-        }
+            setError(t('teacherClass.error.notFound'));
+          }
       }).catch(err => {
         console.error('Error fetching class:', err);
-        setError('Failed to load class details');
+          setError(t('teacherClass.error.loadFailed'));
       });
     }
 
@@ -103,7 +105,7 @@ const TeacherClass: React.FC = () => {
         questionsUnsubscribe.current();
       }
     };
-  }, [classCode, location.state, navigate]);
+  }, [classCode, location.state, navigate, t]);
 
   const handleRemoveQuestion = async (questionId: string) => {
     try {
@@ -138,7 +140,7 @@ const TeacherClass: React.FC = () => {
   };
 
   const handleEndClass = () => {
-    if (window.confirm('Are you sure you want to end this class? Students will be disconnected.')) {
+    if (window.confirm(t('teacherClass.endConfirm'))) {
       navigate('/');
     }
   };
@@ -150,7 +152,7 @@ const TeacherClass: React.FC = () => {
 
   const getStudentName = (studentId: string): string => {
     const student = students.find(s => s.id === studentId);
-    return student?.name || 'Unknown Student';
+    return student?.name || t('teacherClass.unknownStudent');
   };
 
   const handsRaisedCount = students.filter(s => s.handRaised).length;
@@ -164,9 +166,9 @@ const TeacherClass: React.FC = () => {
     return (
       <div className="teacher-class-container">
         <div className="error-state">
-          <h2>Error</h2>
+          <h2>{t('common.error')}</h2>
           <p>{error}</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+          <button onClick={() => navigate('/')}>{t('common.backToHome')}</button>
         </div>
       </div>
     );
@@ -178,19 +180,19 @@ const TeacherClass: React.FC = () => {
         <div className="class-info">
           <h1>{className}</h1>
           <div className="class-code-display">
-            <span>Class Code: <strong>{classCode}</strong></span>
+            <span>{t('teacherClass.shareCode', { code: classCode })}</span>
             <button 
               className="qr-toggle-button"
               onClick={() => setShowQRCode(!showQRCode)}
             >
-              {showQRCode ? 'Hide QR' : 'Show QR'}
+              {showQRCode ? t('buttons.hideQR') : t('buttons.showQR')}
             </button>
           </div>
         </div>
         
         <div className="class-actions">
           <button className="end-class-button" onClick={handleEndClass}>
-            End Class
+            {t('buttons.endClass')}
           </button>
         </div>
       </header>
@@ -199,7 +201,7 @@ const TeacherClass: React.FC = () => {
         <div className="qr-code-section">
           <div className="qr-code-container">
             <QRCode value={joinUrl} size={200} />
-            <p>Students can scan this QR code to join</p>
+            <p>{t('teacherClass.qrInfo')}</p>
           </div>
         </div>
       )}
@@ -212,19 +214,19 @@ const TeacherClass: React.FC = () => {
       <div className="class-content">
         <div className="students-section">
           <div className="section-header">
-            <h2>Students ({students.length})</h2>
+            <h2>{t('teacherClass.studentsCount', { count: students.length })}</h2>
             {handsRaisedCount > 0 && (
               <div className="hands-raised-badge">
-                🖐️ {handsRaisedCount} hand{handsRaisedCount !== 1 ? 's' : ''} raised
+                🖐️ {t('teacherClass.handsRaised', { count: handsRaisedCount })}
               </div>
             )}
           </div>
           
           <div className="students-list">
             {students.length === 0 ? (
-              <div className="empty-state">
-                <p>No students have joined yet</p>
-                <p>Share the class code: <strong>{classCode}</strong></p>
+                <div className="empty-state">
+                <p>{t('teacherClass.noStudents')}</p>
+                <p>{t('teacherClass.shareCode', { code: classCode })}</p>
               </div>
             ) : (
               students.map(student => (
@@ -233,10 +235,10 @@ const TeacherClass: React.FC = () => {
                     <span className="student-name">{student.name}</span>
                     {student.handRaised && <span className="hand-icon">🖐️</span>}
                   </div>
-                  <button
+                    <button
                     className="remove-button"
                     onClick={() => handleRemoveStudent(student.id)}
-                    title="Remove student"
+                    title={t('teacherClass.actionTitles.removeStudent')}
                   >
                     ×
                   </button>
@@ -248,18 +250,18 @@ const TeacherClass: React.FC = () => {
 
         <div className="questions-section">
           <div className="section-header">
-            <h2>Questions ({questions.length})</h2>
+            <h2>{t('teacherClass.questionsCount', { count: questions.length })}</h2>
             <div className="question-counts">
-              <span className="pending-count">⏳ {pendingQuestions} Pending</span>
-              <span className="answered-count">✓ {answeredQuestions} Answered</span>
+              <span className="pending-count">⏳ {pendingQuestions} {t('teacherClass.pending')}</span>
+              <span className="answered-count">✓ {answeredQuestions} {t('teacherClass.answered')}</span>
             </div>
           </div>
           
           <div className="questions-list">
             {questions.length === 0 ? (
               <div className="empty-state">
-                <p>No questions yet</p>
-                <p>Students can ask questions that will appear here in real-time</p>
+                <p>{t('teacherClass.noQuestions')}</p>
+                <p>{t('teacherClass.questionsHint')}</p>
               </div>
             ) : (
               questions.map(question => (
@@ -269,7 +271,7 @@ const TeacherClass: React.FC = () => {
                       <div className="question-text">{question.text}</div>
                       <div className="question-status">
                         <span className={`status-badge ${question.status || 'pending'}`}>
-                          {question.status === 'answered' ? '✓ Answered' : '⏳ Pending'}
+                          {question.status === 'answered' ? `✓ ${t('teacherClass.answered')}` : `⏳ ${t('teacherClass.pending')}`}
                         </span>
                       </div>
                     </div>
@@ -287,7 +289,7 @@ const TeacherClass: React.FC = () => {
                       <button
                         className="answer-button"
                         onClick={() => handleMarkQuestionAnswered(question.id)}
-                        title="Mark as answered"
+                        title={t('teacherClass.actionTitles.markAnswered')}
                       >
                         ✓
                       </button>
@@ -295,7 +297,7 @@ const TeacherClass: React.FC = () => {
                       <button
                         className="pending-button"
                         onClick={() => handleMarkQuestionPending(question.id)}
-                        title="Mark as pending"
+                        title={t('teacherClass.actionTitles.markPending')}
                       >
                         ⏳
                       </button>
@@ -303,7 +305,7 @@ const TeacherClass: React.FC = () => {
                     <button
                       className="remove-button"
                       onClick={() => handleRemoveQuestion(question.id)}
-                      title="Remove question"
+                      title={t('teacherClass.actionTitles.removeQuestion')}
                     >
                       ×
                     </button>
