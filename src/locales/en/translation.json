@@ -16,6 +16,7 @@
   "buttons": {
     "back": "Back",
     "createClass": "Create Class",
+    "reopenClass": "Reopen Class",
     "joining": "Joining Class...",
     "creating": "Creating Class...",
     "joinClass": "Join Class",
@@ -45,6 +46,8 @@
       "emptyName": "Please enter a class name",
       "createFailed": "Failed to create class. Please try again."
     }
+    ,
+    "recentTitle": "Recent classes (last hour)"
   },
   "joinClass": {
     "title": "Join Class",
@@ -85,7 +88,8 @@
     "pending_plural": "Pending",
     "answered_plural": "Answered",
     "qrInfo": "Students can scan this QR code to join",
-    "endConfirm": "Are you sure you want to end this class? Students will be disconnected.",
+  "endConfirm": "Are you sure you want to end this class? Students will be disconnected.",
+  "closedNotice": "This class has been closed",
     "unknownStudent": "Unknown Student",
     "questionsHint": "Students can ask questions that will appear here in real-time",
     "handsRaised_suffix": "raised",
@@ -113,6 +117,10 @@
     "submitFailed": "Failed to submit question",
     "leaveConfirm": "Are you sure you want to leave this class?",
     "leave": "Leave Class"
+    ,"removedAlert": "You have been removed from the class by the teacher."
+  },
+  "studentClassExtra": {
+    "classClosedAlert": "This class has been closed by the teacher. You will be returned to the home screen."
   },
   "common": {
     "error": "Error",
@@ -121,6 +129,10 @@
   ,
   "offline": {
     "banner": "You are offline — some features may be unavailable. Changes will sync when back online."
+  },
+  "date": {
+    "todayAt": "Today at {{time}}",
+    "yesterdayAt": "Yesterday at {{time}}"
   },
   "notifications": {
     "handRaised": {
@@ -131,11 +143,11 @@
       "title": "❓ New Question!",
       "body": "{{studentName}} asked: \"{{question}}\" in class {{classCode}}"
     },
+    "title": "Notification Settings",
     "unsupported": "Notifications not supported in this browser",
     "blocked": "Notifications blocked. Enable in browser settings.",
     "enable": "Enable Notifications",
     "description": "Get notified when students raise hands or ask questions",
-    "enabled": "Notifications enabled",
-    "test": "Test"
+    "enabled": "Notifications enabled"
   }
 }

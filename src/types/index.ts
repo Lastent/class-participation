@@ -9,6 +9,7 @@ export interface Student {
   id: string;
   name: string;
   handRaised: boolean;
+  status?: 'active' | 'removed';
 }
 
 export interface Question {
@@ -16,7 +17,10 @@ export interface Question {
   text: string;
   studentId: string;
   createdAt?: Date; // Optional for backward compatibility
+  // Keep status for pending/answered and add isDeleted flag for soft-deletes
   status?: 'pending' | 'answered'; // Optional for backward compatibility, defaults to 'pending'
+  isDeleted?: boolean;
+  answeredAt?: Date;
 }
 
 // Additional types for the React app

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { firebaseService } from '../../services/firebaseService';
 import { generateClassCode } from '../../utils/codeUtils';
+import { getRelativeTime, formatTime } from '../../utils/dateUtils';
 import './CreateClass.css';
 import { useTranslation } from 'react-i18next';
 
@@ -38,6 +39,17 @@ const CreateClass: React.FC = () => {
 
       // Create the class
       await firebaseService.createClass(classCode, className.trim());
+      // Persist this class locally as a recent class (for 1 hour recall)
+      try {
+        const recentsRaw = localStorage.getItem('recentClasses');
+        const recents = recentsRaw ? JSON.parse(recentsRaw) as Array<any> : [];
+        recents.unshift({ id: classCode, name: className.trim(), createdAt: Date.now() });
+        // Keep list unique by id and limit to 10
+        const unique = Array.from(new Map(recents.map(r => [r.id, r])).values()).slice(0, 10);
+        localStorage.setItem('recentClasses', JSON.stringify(unique));
+      } catch (err) {
+        // ignore local storage errors
+      }
       
       // Navigate to teacher class screen with the class code
       navigate(`/teacher/${classCode}`, { 
@@ -101,7 +113,49 @@ const CreateClass: React.FC = () => {
             )}
           </button>
         </form>
-
+        <div className="recent-classes-card">
+          <h4>{t('createClass.recentTitle')}</h4>
+          <div className="recent-list">
+            {(() => {
+              try {
+                const recentsRaw = localStorage.getItem('recentClasses');
+                const recents = recentsRaw ? JSON.parse(recentsRaw) as Array<any> : [];
+                const oneHour = Date.now() - (60 * 60 * 1000);
+                return recents.filter(r => r.createdAt >= oneHour).map(r => {
+                  const created = new Date(r.createdAt);
+                  return (
+                  <div key={r.id} className="recent-item">
+                    <div className="recent-meta">
+                      <div className="recent-name">{r.name}</div>
+                      <div className="recent-code">{r.id}</div>
+                      <div className="recent-created">{getRelativeTime(created)} · {formatTime(created)}</div>
+                    </div>
+                    <div className="recent-actions">
+                      <button
+                        className="reopen-button"
+                        onClick={async () => {
+                          try {
+                            // Try to reopen the class before navigating (idempotent if already open)
+                            await firebaseService.reopenClass(r.id);
+                          } catch (err) {
+                            // If reopen fails, still attempt to navigate so teacher can inspect the class
+                            console.error('Error reopening class:', err);
+                          }
+                          navigate(`/teacher/${r.id}`, { state: { className: r.name } });
+                        }}
+                      >
+                        {t('buttons.reopenClass') /* Keep label simple; translation may change */}
+                      </button>
+                    </div>
+                  </div>
+                  );
+                });
+              } catch (e) {
+                return null;
+              }
+            })()}
+          </div>
+        </div>
         <div className="info-section">
           <h3>{t('createClass.whatNextTitle')}</h3>
           <ul>

@@ -25,6 +25,7 @@ const StudentClass: React.FC = () => {
   
   // Refs for cleanup
   const questionsUnsubscribe = useRef<(() => void) | null>(null);
+  const studentDocUnsub = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!classCode) {
@@ -74,11 +75,39 @@ const StudentClass: React.FC = () => {
       // Don't fail completely, just log the error
     }
 
+    // Listen for class-level updates (e.g. state changes such as 'closed')
+    let classUnsub: (() => void) | null = null;
+    try {
+      classUnsub = firebaseService.onClassUpdate(classCode, (data) => {
+        if (data && data.state === 'closed') {
+          // If class closed, navigate students back to home (kicked out)
+          alert(t('studentClassExtra.classClosedAlert'));
+          navigate('/');
+        }
+      });
+    } catch (err) {
+      console.error('Student: Error setting up class listener:', err);
+    }
+
+    // Listen to own student doc for status changes (e.g., removed)
+    try {
+      studentDocUnsub.current = firebaseService.onStudentDoc(classCode, stateStudentId, (docData) => {
+        if (docData && docData.status === 'removed') {
+          alert(t('studentClass.removedAlert'));
+          navigate('/');
+        }
+      });
+    } catch (err) {
+      console.error('Student: Error setting up student doc listener:', err);
+    }
+
     // Cleanup function
     return () => {
       if (questionsUnsubscribe.current) {
         questionsUnsubscribe.current();
       }
+      if (classUnsub) classUnsub();
+      if (studentDocUnsub.current) studentDocUnsub.current();
     };
   }, [classCode, location.state, navigate, t]);
 

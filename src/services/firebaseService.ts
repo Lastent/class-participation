@@ -11,10 +11,12 @@ import {
   updateDoc,
   deleteDoc,
   getDoc,
-  Timestamp
+  Timestamp,
+  deleteField
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Class, Student, Question } from '../types';
+import { writeBatch } from 'firebase/firestore';
 
 export class FirebaseService {
   
@@ -57,6 +59,73 @@ export class FirebaseService {
   }
 
   /**
+   * Close a class by setting state and closeAt. Does not delete the class document.
+   */
+  async closeClass(classCode: string): Promise<void> {
+    const classRef = doc(db, 'classes', classCode);
+    await updateDoc(classRef, {
+      state: 'closed',
+      closeAt: Timestamp.now()
+    });
+    // Mark all students as removed when closing the class
+    try {
+      const studentsRef = collection(db, 'classes', classCode, 'students');
+      const snapshot = await (await import('firebase/firestore')).getDocs(studentsRef);
+      const batch = writeBatch(db);
+      snapshot.forEach(snap => {
+        const studentRef = doc(db, 'classes', classCode, 'students', snap.id);
+        batch.update(studentRef, { status: 'removed' });
+      });
+      await batch.commit();
+    } catch (err) {
+      console.error('Error marking students removed on close:', err);
+    }
+  }
+
+  /**
+   * Reopen a previously closed class by setting state to 'open' and removing closeAt
+   */
+  async reopenClass(classCode: string): Promise<void> {
+    const classRef = doc(db, 'classes', classCode);
+    await updateDoc(classRef, {
+      state: 'open',
+      closeAt: deleteField()
+    });
+  }
+
+  /**
+   * Update a single student's status field
+   */
+  async updateStudentStatus(classCode: string, studentId: string, status: 'active' | 'removed') {
+    const studentRef = doc(db, 'classes', classCode, 'students', studentId);
+    await updateDoc(studentRef, { status });
+  }
+
+  /**
+   * Listen to a specific student's document
+   */
+  onStudentDoc(classCode: string, studentId: string, callback: (data: any) => void): () => void {
+    const studentRef = doc(db, 'classes', classCode, 'students', studentId);
+    return onSnapshot(studentRef, (snapshot) => {
+      if (snapshot.exists()) callback(snapshot.data());
+    }, (err) => console.error('Error in student doc listener:', err));
+  }
+
+  /**
+   * Listen for updates to the class document (e.g., state changes)
+   */
+  onClassUpdate(classCode: string, callback: (data: any) => void): () => void {
+    const classRef = doc(db, 'classes', classCode);
+    return onSnapshot(classRef, (snapshot) => {
+      if (snapshot.exists()) {
+        callback(snapshot.data());
+      }
+    }, (error) => {
+      console.error('Error in class listener:', error);
+    });
+  }
+
+  /**
    * Adds a student to a class
    */
   async addStudent(classCode: string, studentName: string): Promise<string> {
@@ -87,7 +156,12 @@ export class FirebaseService {
    */
   async updateQuestionStatus(classCode: string, questionId: string, status: 'pending' | 'answered'): Promise<void> {
     const questionRef = doc(db, 'classes', classCode, 'questions', questionId);
-    await updateDoc(questionRef, { status });
+    if (status === 'answered') {
+      await updateDoc(questionRef, { status, answeredAt: Timestamp.now() });
+    } else {
+      // revert to pending: remove answeredAt
+      await updateDoc(questionRef, { status, answeredAt: deleteField() });
+    }
   }
 
   /**
@@ -99,7 +173,8 @@ export class FirebaseService {
       text: questionText,
       studentId,
       createdAt: Timestamp.now(),
-      status: 'pending' // New questions start as pending
+      status: 'pending', // New questions start as pending
+      isDeleted: false
     });
     
     // We don't need to update the document with its ID since we use doc.id in listeners
@@ -124,7 +199,8 @@ export class FirebaseService {
         students.push({
           id: doc.id,
           name: data.name,
-          handRaised: data.handRaised
+          handRaised: data.handRaised,
+          status: data.status || 'active'
         });
       });
       callback(students);
@@ -138,18 +214,22 @@ export class FirebaseService {
    */
   onQuestionsUpdate(classCode: string, callback: (questions: Question[]) => void): () => void {
     const questionsRef = collection(db, 'classes', classCode, 'questions');
-    
+
     // Use simple query without orderBy to avoid permission issues
     return onSnapshot(questionsRef, (snapshot) => {
       const questions: Question[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        const isDeleted = !!data.isDeleted;
+        if (isDeleted) return; // skip soft-deleted questions for all views
         questions.push({
           id: doc.id,
           text: data.text,
           studentId: data.studentId,
           createdAt: data.createdAt ? data.createdAt.toDate() : undefined,
-          status: data.status || 'pending' // Default to 'pending' for backward compatibility
+          status: data.status || 'pending', // Default to 'pending' for backward compatibility
+          isDeleted: false,
+          answeredAt: data.answeredAt ? data.answeredAt.toDate() : undefined
         });
       });
       // Sort by createdAt in JavaScript (newest first)
@@ -176,10 +256,19 @@ export class FirebaseService {
   /**
    * Removes a question from a class
    */
+  /**
+   * Soft-delete a question by setting `isDeleted: true`.
+   * This keeps the document for audit/history but hides it from all views.
+   */
   async removeQuestion(classCode: string, questionId: string): Promise<void> {
     const questionRef = doc(db, 'classes', classCode, 'questions', questionId);
-    await deleteDoc(questionRef);
+    await updateDoc(questionRef, { isDeleted: true });
   }
+
+  // (Removed onQuestionsUpdateForStudents) We now use `isDeleted` flag and
+  // filter deleted questions in the primary onQuestionsUpdate so deleted
+  // items won't appear in any client view by default. If you want teachers
+  // to see deleted items later, we can add a separate listener that includes them.
 }
 
 // Export a singleton instance

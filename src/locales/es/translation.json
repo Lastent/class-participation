@@ -16,6 +16,7 @@
   "buttons": {
     "back": "Atrás",
     "createClass": "Crear Clase",
+    "reopenClass": "Reabrir Clase",
     "joining": "Uniéndose a la clase...",
     "creating": "Creando clase...",
     "joinClass": "Unirse a la Clase",
@@ -28,6 +29,7 @@
     "cancel": "Cancelar",
     "lowerHand": "Bajar la mano",
     "raiseHand": "Levantar la mano"
+    ,"submitting": "Enviando..."
   },
   "createClass": {
     "title": "Crear Nueva Clase",
@@ -44,6 +46,8 @@
       "emptyName": "Por favor ingrese un nombre de clase",
       "createFailed": "No se pudo crear la clase. Inténtalo de nuevo."
     }
+    ,
+    "recentTitle": "Clases recientes (última hora)"
   },
   "joinClass": {
     "title": "Unirse a la Clase",
@@ -60,6 +64,13 @@
       "notFound": "Clase no encontrada. Por favor verifique el código e intente nuevamente.",
       "joinFailed": "No se pudo unir a la clase. Inténtalo de nuevo."
     }
+    ,
+    "infoTitle": "Qué puedes hacer en la clase:",
+    "infoList": [
+      "Levantar la mano para llamar la atención del profesor",
+      "Hacer preguntas que el profesor verá en tiempo real",
+      "Participar en discusiones de la clase"
+    ]
   },
   "teacherClass": {
     "pageTitle": "Profesor - {{className}}",
@@ -77,9 +88,20 @@
     "pending_plural": "Pendiente",
     "answered_plural": "Respondidas",
     "qrInfo": "Los estudiantes pueden escanear este código QR para unirse",
+    "endConfirm": "¿Estás seguro que quieres finalizar esta clase? Los estudiantes serán desconectados.",
+    "closedNotice": "Esta clase ha sido finalizada",
+    "unknownStudent": "Estudiante desconocido",
+    "questionsHint": "Los estudiantes pueden hacer preguntas que aparecerán aquí en tiempo real",
+    "handsRaised_suffix": "levantadas",
     "error": {
       "notFound": "Clase no encontrada",
       "loadFailed": "Error al cargar los detalles de la clase"
+    },
+    "actionTitles": {
+      "removeStudent": "Eliminar estudiante",
+      "markAnswered": "Marcar como respondida",
+      "markPending": "Marcar como pendiente",
+      "removeQuestion": "Eliminar pregunta"
     }
   },
   "studentClass": {
@@ -93,7 +115,11 @@
     "submitSuccess": "Pregunta enviada",
     "submitFailed": "Error al enviar la pregunta",
     "leaveConfirm": "¿Estás seguro que quieres salir de esta clase?",
-    "leave": "Salir de la Clase"
+    "leave": "Salir de la Clase",
+    "removedAlert": "Has sido eliminado de la clase por el profesor."
+  },
+  "studentClassExtra": {
+    "classClosedAlert": "Esta clase ha sido finalizada por el profesor. Serás devuelto a la pantalla de inicio."
   },
   "common": {
     "error": "Error",
@@ -102,6 +128,10 @@
   ,
   "offline": {
     "banner": "Estás sin conexión — algunas funciones pueden no estar disponibles. Los cambios se sincronizarán cuando vuelvas a estar en línea."
+  },
+  "date": {
+    "todayAt": "Hoy a {{time}}",
+    "yesterdayAt": "Ayer a {{time}}"
   },
   "notifications": {
     "handRaised": {
@@ -112,5 +142,12 @@
       "title": "❓ Nueva Pregunta!",
       "body": "{{studentName}} preguntó: \"{{question}}\" en la clase {{classCode}}"
     }
+    ,
+    "title": "Configuración de Notificaciones",
+    "unsupported": "Notificaciones no soportadas en este navegador",
+    "blocked": "Notificaciones bloqueadas. Habilítalas en la configuración del navegador.",
+    "enable": "Habilitar Notificaciones",
+    "description": "Recibe notificaciones cuando los estudiantes levanten la mano o hagan preguntas",
+    "enabled": "Notificaciones habilitadas"
   }
 }

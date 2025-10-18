@@ -133,15 +133,23 @@ const TeacherClass: React.FC = () => {
 
   const handleRemoveStudent = async (studentId: string) => {
     try {
-      await firebaseService.removeStudent(classCode!, studentId);
+      // Mark student as removed instead of deleting the doc
+      await firebaseService.updateStudentStatus(classCode!, studentId, 'removed');
     } catch (err) {
-      console.error('Error removing student:', err);
+      console.error('Error marking student removed:', err);
     }
   };
 
   const handleEndClass = () => {
     if (window.confirm(t('teacherClass.endConfirm'))) {
-      navigate('/');
+      // Mark the class as closed (persist closeAt and state)
+      firebaseService.closeClass(classCode!).then(() => {
+        // After closing, navigate teacher back home
+        navigate('/');
+      }).catch(err => {
+        console.error('Error closing class:', err);
+        setError(t('teacherClass.error.loadFailed'));
+      });
     }
   };
 
@@ -155,7 +163,8 @@ const TeacherClass: React.FC = () => {
     return student?.name || t('teacherClass.unknownStudent');
   };
 
-  const handsRaisedCount = students.filter(s => s.handRaised).length;
+  const activeStudents = students.filter(s => s.status !== 'removed');
+  const handsRaisedCount = activeStudents.filter(s => s.handRaised).length;
   const joinUrl = `${window.location.origin}/join/${classCode}`;
   
   // Calculate question counts by status
@@ -214,7 +223,7 @@ const TeacherClass: React.FC = () => {
       <div className="class-content">
         <div className="students-section">
           <div className="section-header">
-            <h2>{t('teacherClass.studentsCount', { count: students.length })}</h2>
+            <h2>{t('teacherClass.studentsCount', { count: activeStudents.length })}</h2>
             {handsRaisedCount > 0 && (
               <div className="hands-raised-badge">
                 🖐️ {t('teacherClass.handsRaised', { count: handsRaisedCount })}
@@ -223,13 +232,13 @@ const TeacherClass: React.FC = () => {
           </div>
           
           <div className="students-list">
-            {students.length === 0 ? (
+            {students.filter(s => s.status !== 'removed').length === 0 ? (
                 <div className="empty-state">
                 <p>{t('teacherClass.noStudents')}</p>
                 <p>{t('teacherClass.shareCode', { code: classCode })}</p>
               </div>
             ) : (
-              students.map(student => (
+              students.filter(s => s.status !== 'removed').map(student => (
                 <div key={student.id} className={`student-card ${student.handRaised ? 'hand-raised' : ''}`}>
                   <div className="student-info">
                     <span className="student-name">{student.name}</span>

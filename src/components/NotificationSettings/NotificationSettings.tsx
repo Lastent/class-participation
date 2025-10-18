@@ -49,7 +49,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
     <div className="notification-settings">
       <div className="notification-header">
         <span className="notification-icon">🔔</span>
-        <span>Notifications</span>
+        <span>{t('notifications.title')}</span>
       </div>
       
       {permission === 'denied' && (
@@ -75,12 +75,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onSettingsC
           <div className="notification-status enabled">
           <span className="status-icon">✅</span>
           <span>{t('notifications.enabled')}</span>
-          <button 
-            className="test-notification-btn"
-            onClick={() => notificationService.showHandRaisedNotification('Test Student', 'TEST')}
-          >
-            {t('notifications.test')}
-          </button>
         </div>
       )}
     </div>
