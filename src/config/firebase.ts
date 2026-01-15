@@ -1,16 +1,16 @@
 // Firebase configuration
-// You'll need to replace these with your actual Firebase config values
+// Load credentials from environment variables for security
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCKKvcovOkpfM_IGxoloMxoMZGmYkbK0Ok",
-  authDomain: "class-tools-f66b3.firebaseapp.com",
-  projectId: "class-tools-f66b3",
-  storageBucket: "class-tools-f66b3.firebasestorage.app",
-  messagingSenderId: "266443601403",
-  appId: "1:266443601403:web:ea383dc195d1a3d703475e"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
