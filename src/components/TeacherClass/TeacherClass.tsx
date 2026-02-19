@@ -8,6 +8,7 @@ import { notificationService } from '../../services/notificationService';
 import { Student, Question } from '../../types';
 import { formatDateTime, getRelativeTime } from '../../utils/dateUtils';
 import NotificationSettings from '../NotificationSettings/NotificationSettings';
+import HandHistory from '../HandHistory/HandHistory';
 import './TeacherClass.css';
 import { useTranslation } from 'react-i18next';
 
@@ -18,10 +19,14 @@ const TeacherClass: React.FC = () => {
   
   const [students, setStudents] = useState<Student[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<Student | null>(null);
   const [className, setClassName] = useState<string>('');
   const [showQRCode, setShowQRCode] = useState(false);
   const [error, setError] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showAnswerDialog, setShowAnswerDialog] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+  const [answerText, setAnswerText] = useState('');
   
   // Refs for cleanup and tracking previous state
   const studentsUnsubscribe = useRef<(() => void) | null>(null);
@@ -115,6 +120,33 @@ const TeacherClass: React.FC = () => {
     }
   };
 
+  const handleOpenAnswerDialog = (question: Question) => {
+    setSelectedQuestion(question);
+    setAnswerText(question.answer || '');
+    setShowAnswerDialog(true);
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!selectedQuestion || !answerText.trim()) {
+      return;
+    }
+
+    try {
+      await firebaseService.answerQuestion(
+        classCode!,
+        selectedQuestion.id,
+        answerText.trim(),
+        'Teacher' // You might want to use actual teacher name here
+      );
+      setShowAnswerDialog(false);
+      setSelectedQuestion(null);
+      setAnswerText('');
+    } catch (err) {
+      console.error('Error answering question:', err);
+      setError(t('common.error'));
+    }
+  };
+
   const handleMarkQuestionAnswered = async (questionId: string) => {
     try {
       await firebaseService.updateQuestionStatus(classCode!, questionId, 'answered');
@@ -137,6 +169,14 @@ const TeacherClass: React.FC = () => {
       await firebaseService.updateStudentStatus(classCode!, studentId, 'removed');
     } catch (err) {
       console.error('Error marking student removed:', err);
+    }
+  };
+
+  const handleLowerStudentHand = async (studentId: string) => {
+    try {
+      await firebaseService.lowerStudentHand(classCode!, studentId);
+    } catch (err) {
+      console.error('Error lowering student hand:', err);
     }
   };
 
@@ -244,13 +284,31 @@ const TeacherClass: React.FC = () => {
                     <span className="student-name">{student.name}</span>
                     {student.handRaised && <span className="hand-icon">🖐️</span>}
                   </div>
+                  <div className="student-actions">
                     <button
-                    className="remove-button"
-                    onClick={() => handleRemoveStudent(student.id)}
-                    title={t('teacherClass.actionTitles.removeStudent')}
-                  >
-                    ×
-                  </button>
+                      className="history-button"
+                      onClick={() => setSelectedStudentForHistory(student)}
+                      title="View hand raise history"
+                    >
+                      📋
+                    </button>
+                    {student.handRaised && (
+                      <button
+                        className="lower-hand-button"
+                        onClick={() => handleLowerStudentHand(student.id)}
+                        title={t('teacherClass.actionTitles.lowerStudentHand')}
+                      >
+                        👇
+                      </button>
+                    )}
+                    <button
+                      className="remove-button"
+                      onClick={() => handleRemoveStudent(student.id)}
+                      title={t('teacherClass.actionTitles.removeStudent')}
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -292,8 +350,21 @@ const TeacherClass: React.FC = () => {
                         </span>
                       )}
                     </div>
+                    {question.answer && (
+                      <div className="question-answer">
+                        <div className="answer-label">{t('teacherClass.teacherAnswer', { name: question.answeredBy || 'Teacher' })}</div>
+                        <div className="answer-text">{question.answer}</div>
+                      </div>
+                    )}
                   </div>
                   <div className="question-actions">
+                    <button
+                      className="answer-dialog-button"
+                      onClick={() => handleOpenAnswerDialog(question)}
+                      title={t('teacherClass.actionTitles.answerQuestion')}
+                    >
+                      💬
+                    </button>
                     {question.status !== 'answered' ? (
                       <button
                         className="answer-button"
@@ -325,6 +396,63 @@ const TeacherClass: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {showAnswerDialog && selectedQuestion && (
+        <div className="dialog-overlay" onClick={() => setShowAnswerDialog(false)}>
+          <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
+            <div className="dialog-header">
+              <h3>{t('teacherClass.answerDialogTitle')}</h3>
+              <button 
+                className="close-button"
+                onClick={() => setShowAnswerDialog(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="dialog-body">
+              <div className="question-preview">
+                <strong>{t('teacherClass.studentQuestion')}:</strong>
+                <p>{selectedQuestion.text}</p>
+              </div>
+
+              <textarea
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                placeholder={t('teacherClass.answerPlaceholder')}
+                maxLength={1000}
+                rows={6}
+                autoFocus
+              />
+            </div>
+
+            <div className="dialog-actions">
+              <button 
+                className="cancel-button"
+                onClick={() => setShowAnswerDialog(false)}
+              >
+                {t('buttons.cancel')}
+              </button>
+              <button 
+                className="submit-button"
+                onClick={handleSubmitAnswer}
+                disabled={!answerText.trim()}
+              >
+                {t('buttons.submitAnswer')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedStudentForHistory && (
+        <HandHistory
+          classCode={classCode!}
+          studentId={selectedStudentForHistory.id}
+          studentName={selectedStudentForHistory.name}
+          onClose={() => setSelectedStudentForHistory(null)}
+        />
+      )}
     </div>
   );
 };

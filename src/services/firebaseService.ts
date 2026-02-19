@@ -102,6 +102,65 @@ export class FirebaseService {
   }
 
   /**
+   * Lower a student's hand by setting handRaised to false and record in history
+   */
+  async lowerStudentHand(classCode: string, studentId: string): Promise<void> {
+    const studentRef = doc(db, 'classes', classCode, 'students', studentId);
+    await updateDoc(studentRef, { handRaised: false });
+    
+    // Record in hand history that teacher lowered the hand
+    await this.recordHandHistory(
+      classCode,
+      studentId,
+      'lowered',
+      'teacher',
+      'Teacher'
+    );
+  }
+
+  /**
+   * Records a hand history entry when student raises or lowers their hand
+   */
+  private async recordHandHistory(
+    classCode: string,
+    studentId: string,
+    action: 'raised' | 'lowered',
+    raisedBy: 'student' | 'teacher',
+    raisedByName: string | null
+  ): Promise<void> {
+    try {
+      const handHistoryRef = collection(db, 'classes', classCode, 'students', studentId, 'handHistory');
+      await addDoc(handHistoryRef, {
+        action,
+        raisedBy,
+        raisedByName: raisedByName || null,
+        timestamp: Timestamp.now()
+      });
+    } catch (err) {
+      console.error('Error recording hand history:', err);
+    }
+  }
+
+  /**
+   * Gets the hand history for a student
+   */
+  async getHandHistory(classCode: string, studentId: string): Promise<any[]> {
+    try {
+      const handHistoryRef = collection(db, 'classes', classCode, 'students', studentId, 'handHistory');
+      const q = query(handHistoryRef, orderBy('timestamp', 'desc'));
+      const snapshot = await (await import('firebase/firestore')).getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp ? doc.data().timestamp.toDate() : null
+      }));
+    } catch (err) {
+      console.error('Error fetching hand history:', err);
+      return [];
+    }
+  }
+
+  /**
    * Listen to a specific student's document
    */
   onStudentDoc(classCode: string, studentId: string, callback: (data: any) => void): () => void {
@@ -144,11 +203,20 @@ export class FirebaseService {
   }
 
   /**
-   * Updates student's hand raised status
+   * Updates student's hand raised status and records in hand history
    */
   async updateHandRaised(classCode: string, studentId: string, handRaised: boolean): Promise<void> {
     const studentRef = doc(db, 'classes', classCode, 'students', studentId);
     await updateDoc(studentRef, { handRaised });
+    
+    // Record in hand history
+    await this.recordHandHistory(
+      classCode,
+      studentId,
+      handRaised ? 'raised' : 'lowered',
+      'student',
+      null
+    );
   }
 
   /**
@@ -162,6 +230,19 @@ export class FirebaseService {
       // revert to pending: remove answeredAt
       await updateDoc(questionRef, { status, answeredAt: deleteField() });
     }
+  }
+
+  /**
+   * Updates a question with teacher's answer
+   */
+  async answerQuestion(classCode: string, questionId: string, answer: string, answeredBy: string): Promise<void> {
+    const questionRef = doc(db, 'classes', classCode, 'questions', questionId);
+    await updateDoc(questionRef, {
+      answer,
+      answeredBy,
+      status: 'answered',
+      answeredAt: Timestamp.now()
+    });
   }
 
   /**
@@ -229,7 +310,9 @@ export class FirebaseService {
           createdAt: data.createdAt ? data.createdAt.toDate() : undefined,
           status: data.status || 'pending', // Default to 'pending' for backward compatibility
           isDeleted: false,
-          answeredAt: data.answeredAt ? data.answeredAt.toDate() : undefined
+          answeredAt: data.answeredAt ? data.answeredAt.toDate() : undefined,
+          answer: data.answer,
+          answeredBy: data.answeredBy
         });
       });
       // Sort by createdAt in JavaScript (newest first)
@@ -263,6 +346,103 @@ export class FirebaseService {
   async removeQuestion(classCode: string, questionId: string): Promise<void> {
     const questionRef = doc(db, 'classes', classCode, 'questions', questionId);
     await updateDoc(questionRef, { isDeleted: true });
+  }
+
+  /**
+   * Gets all classes with their basic info
+   */
+  async getAllClasses(): Promise<any[]> {
+    try {
+      const classesRef = collection(db, 'classes');
+      const snapshot = await (await import('firebase/firestore')).getDocs(classesRef);
+      return snapshot.docs.map(doc => ({
+        code: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
+        closeAt: doc.data().closeAt ? doc.data().closeAt.toDate() : null
+      }));
+    } catch (err) {
+      console.error('Error fetching all classes:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Gets detailed statistics for a class
+   */
+  async getClassStatistics(classCode: string): Promise<any> {
+    try {
+      // Get class info
+      const classData = await this.getClass(classCode);
+      const classRef = doc(db, 'classes', classCode);
+      const classSnap = await getDoc(classRef);
+      const classFullData = classSnap.data() || {};
+
+      // Get all students (including those who left)
+      const studentsRef = collection(db, 'classes', classCode, 'students');
+      const studentsSnap = await (await import('firebase/firestore')).getDocs(studentsRef);
+      const allStudents = studentsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Count ALL students who joined the class (whether they're still in or not)
+      const totalStudentCount = allStudents.length;
+
+      // Get questions
+      const questionsRef = collection(db, 'classes', classCode, 'questions');
+      const questionsSnap = await (await import('firebase/firestore')).getDocs(questionsRef);
+      const questions = questionsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null
+      })).filter((q: any) => !q.isDeleted);
+
+      // Calculate hand raise statistics
+      const handRaiseStats: {[studentId: string]: any} = {};
+      for (const student of allStudents) {
+        const handHistoryRef = collection(db, 'classes', classCode, 'students', student.id, 'handHistory');
+        const handHistorySnap = await (await import('firebase/firestore')).getDocs(handHistoryRef);
+        const handHistory = handHistorySnap.docs.map(doc => ({
+          ...doc.data(),
+          timestamp: doc.data().timestamp ? doc.data().timestamp.toDate() : null
+        }));
+        
+        handRaiseStats[student.id] = {
+          totalRaises: handHistory.filter((h: any) => h.action === 'raised').length,
+          totalLowers: handHistory.filter((h: any) => h.action === 'lowered').length,
+          handHistory
+        };
+      }
+
+      // Calculate duration
+      const createdAt = classFullData.createdAt ? classFullData.createdAt.toDate() : new Date();
+      const closeAt = classFullData.closeAt ? classFullData.closeAt.toDate() : new Date();
+      const durationMinutes = Math.round((closeAt.getTime() - createdAt.getTime()) / (1000 * 60));
+
+      // Calculate total hand raises across all students
+      const totalHandRaises = Object.values(handRaiseStats).reduce((sum: number, stats: any) => sum + stats.totalRaises, 0);
+
+      return {
+        code: classCode,
+        name: classData?.name || 'Unknown Class',
+        createdAt,
+        closeAt,
+        state: classFullData.state || 'open',
+        durationMinutes,
+        students: allStudents,
+        totalStudents: totalStudentCount,
+        totalHandRaises,
+        questions,
+        totalQuestions: questions.length,
+        answeredQuestions: questions.filter((q: any) => q.status === 'answered').length,
+        pendingQuestions: questions.filter((q: any) => q.status !== 'answered').length,
+        handRaiseStats
+      };
+    } catch (err) {
+      console.error('Error fetching class statistics:', err);
+      return null;
+    }
   }
 
   // (Removed onQuestionsUpdateForStudents) We now use `isDeleted` flag and

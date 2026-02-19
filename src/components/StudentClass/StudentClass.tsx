@@ -89,12 +89,19 @@ const StudentClass: React.FC = () => {
       console.error('Student: Error setting up class listener:', err);
     }
 
-    // Listen to own student doc for status changes (e.g., removed)
+    // Listen to own student doc for status changes and hand raised updates
     try {
       studentDocUnsub.current = firebaseService.onStudentDoc(classCode, stateStudentId, (docData) => {
-        if (docData && docData.status === 'removed') {
-          alert(t('studentClass.removedAlert'));
-          navigate('/');
+        if (docData) {
+          // Update handRaised state in real-time if teacher lowered it
+          if (docData.handRaised !== undefined) {
+            setHandRaised(docData.handRaised);
+          }
+          // Check if student was removed
+          if (docData.status === 'removed') {
+            alert(t('studentClass.removedAlert'));
+            navigate('/');
+          }
         }
       });
     } catch (err) {
@@ -218,6 +225,12 @@ const StudentClass: React.FC = () => {
                     {question.status === 'answered' ? `✓ ${t('teacherClass.answered')}` : `⏳ ${t('teacherClass.pending')}`}
                   </span>
                 </div>
+                {question.answer && (
+                  <div className="question-answer">
+                    <div className="answer-label">{t('studentClass.teacherAnswer', { name: question.answeredBy || 'Teacher' })}</div>
+                    <div className="answer-text">{question.answer}</div>
+                  </div>
+                )}
               </div>
             ))
           )}

@@ -7,6 +7,7 @@ const CreateClass = lazy(() => import('./components/CreateClass/CreateClass'));
 const JoinClass = lazy(() => import('./components/JoinClass/JoinClass'));
 const TeacherClass = lazy(() => import('./components/TeacherClass/TeacherClass'));
 const StudentClass = lazy(() => import('./components/StudentClass/StudentClass'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard/AdminDashboard'));
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/teacher/:classCode" element={<TeacherClass />} />
             <Route path="/student/:classCode" element={<StudentClass />} />
             <Route path="/join/:classCode" element={<JoinClass />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </Suspense>
       </div>

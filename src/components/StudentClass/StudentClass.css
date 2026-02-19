@@ -359,6 +359,27 @@
   cursor: not-allowed;
 }
 
+/* Answer display styles */
+.question-answer {
+  background: #e8f5e9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border-left: 4px solid #4caf50;
+}
+
+.answer-label {
+  font-size: 0.85rem;
+  color: #2e7d32;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.answer-text {
+  color: #333;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
   .student-class-container {
     padding: 10px;

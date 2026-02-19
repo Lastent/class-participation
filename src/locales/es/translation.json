@@ -26,10 +26,11 @@
     "endClass": "Finalizar Clase",
     "askQuestion": "Hacer una Pregunta",
     "submitQuestion": "Enviar Pregunta",
+    "submitAnswer": "Enviar Respuesta",
     "cancel": "Cancelar",
     "lowerHand": "Bajar la mano",
-    "raiseHand": "Levantar la mano"
-    ,"submitting": "Enviando..."
+    "raiseHand": "Levantar la mano",
+    "submitting": "Enviando..."
   },
   "createClass": {
     "title": "Crear Nueva Clase",
@@ -45,8 +46,7 @@
     "errors": {
       "emptyName": "Por favor ingrese un nombre de clase",
       "createFailed": "No se pudo crear la clase. Inténtalo de nuevo."
-    }
-    ,
+    },
     "recentTitle": "Clases recientes (última hora)"
   },
   "joinClass": {
@@ -63,8 +63,7 @@
       "invalidCode": "El código de clase debe tener 6 caracteres",
       "notFound": "Clase no encontrada. Por favor verifique el código e intente nuevamente.",
       "joinFailed": "No se pudo unir a la clase. Inténtalo de nuevo."
-    }
-    ,
+    },
     "infoTitle": "Qué puedes hacer en la clase:",
     "infoList": [
       "Levantar la mano para llamar la atención del profesor",
@@ -99,10 +98,16 @@
     },
     "actionTitles": {
       "removeStudent": "Eliminar estudiante",
+      "lowerStudentHand": "Bajar la mano",
       "markAnswered": "Marcar como respondida",
       "markPending": "Marcar como pendiente",
-      "removeQuestion": "Eliminar pregunta"
-    }
+      "removeQuestion": "Eliminar pregunta",
+      "answerQuestion": "Responder pregunta"
+    },
+    "answerDialogTitle": "Responder la Pregunta del Estudiante",
+    "answerPlaceholder": "Escribe tu respuesta aquí...",
+    "studentQuestion": "Pregunta del Estudiante",
+    "teacherAnswer": "Respuesta de {{name}}"
   },
   "studentClass": {
     "pageTitle": "Estudiante - {{className}}",
@@ -116,16 +121,17 @@
     "submitFailed": "Error al enviar la pregunta",
     "leaveConfirm": "¿Estás seguro que quieres salir de esta clase?",
     "leave": "Salir de la Clase",
-    "removedAlert": "Has sido eliminado de la clase por el profesor."
+    "removedAlert": "Has sido eliminado de la clase por el profesor.",
+    "teacherAnswer": "Respuesta de {{name}}"
   },
   "studentClassExtra": {
     "classClosedAlert": "Esta clase ha sido finalizada por el profesor. Serás devuelto a la pantalla de inicio."
   },
   "common": {
     "error": "Error",
-    "backToHome": "Volver al inicio"
-  }
-  ,
+    "backToHome": "Volver al inicio",
+    "close": "Cerrar"
+  },
   "offline": {
     "banner": "Estás sin conexión — algunas funciones pueden no estar disponibles. Los cambios se sincronizarán cuando vuelvas a estar en línea."
   },
@@ -141,13 +147,58 @@
     "question": {
       "title": "❓ Nueva Pregunta!",
       "body": "{{studentName}} preguntó: \"{{question}}\" en la clase {{classCode}}"
-    }
-    ,
+    },
     "title": "Configuración de Notificaciones",
     "unsupported": "Notificaciones no soportadas en este navegador",
     "blocked": "Notificaciones bloqueadas. Habilítalas en la configuración del navegador.",
     "enable": "Habilitar Notificaciones",
     "description": "Recibe notificaciones cuando los estudiantes levanten la mano o hagan preguntas",
     "enabled": "Notificaciones habilitadas"
+  },
+  "handHistory": {
+    "title": "Historial de Levantamiento de Mano - {{name}}",
+    "loading": "Cargando historial...",
+    "noEntries": "Sin historial de levantamiento de mano aún",
+    "raised": "Levantó la mano",
+    "loweredByStudent": "Bajó la mano",
+    "loweredByTeacher": "El profesor ({{name}}) bajó la mano",
+    "totalRaises": "Total de levantamientos",
+    "totalLowers": "Total de bajadas"
+  },
+  "admin": {
+    "title": "Panel de Administración",
+    "subtitle": "Estadísticas y Análisis de Clases",
+    "classes": "Clases",
+    "loadingClasses": "Cargando clases...",
+    "noClasses": "No se encontraron clases",
+    "loadingStats": "Cargando estadísticas...",
+    "code": "Código",
+    "stats": {
+      "totalStudents": "Total de Estudiantes",
+      "totalQuestions": "Total de Preguntas",
+      "answeredQuestions": "Preguntas Respondidas",
+      "handRaises": "Levantamientos de Mano",
+      "duration": "Duración",
+      "created": "Creado"
+    },
+    "studentDetails": "Detalles de Estudiantes",
+    "noStudents": "Sin estudiantes en esta clase",
+    "studentTable": {
+      "name": "Nombre",
+      "handRaises": "Levantamientos",
+      "lowers": "Bajadas"
+    },
+    "questions": "Preguntas",
+    "noQuestions": "Sin preguntas",
+    "questionMeta": {
+      "by": "por",
+      "answered": "✓ Respondida",
+      "pending": "⏳ Pendiente",
+      "answerFrom": "Respuesta de"
+    },
+    "errorLoading": "Error al cargar estadísticas",
+    "closed": "🔒 Cerrada",
+    "open": "🔓 Abierta",
+    "unknown": "Desconocido"
   }
 }

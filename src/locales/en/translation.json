@@ -26,6 +26,7 @@
     "endClass": "End Class",
     "askQuestion": "Ask Question",
     "submitQuestion": "Submit Question",
+    "submitAnswer": "Submit Answer",
     "cancel": "Cancel",
     "lowerHand": "Lower Hand",
     "raiseHand": "Raise Hand",
@@ -45,8 +46,7 @@
     "errors": {
       "emptyName": "Please enter a class name",
       "createFailed": "Failed to create class. Please try again."
-    }
-    ,
+    },
     "recentTitle": "Recent classes (last hour)"
   },
   "joinClass": {
@@ -63,8 +63,7 @@
       "invalidCode": "Class code must be 6 characters long",
       "notFound": "Class not found. Please check the code and try again.",
       "joinFailed": "Failed to join class. Please try again."
-    }
-    ,
+    },
     "infoTitle": "What you can do in class:",
     "infoList": [
       "Raise your hand to get the teacher's attention",
@@ -88,22 +87,27 @@
     "pending_plural": "Pending",
     "answered_plural": "Answered",
     "qrInfo": "Students can scan this QR code to join",
-  "endConfirm": "Are you sure you want to end this class? Students will be disconnected.",
-  "closedNotice": "This class has been closed",
+    "endConfirm": "Are you sure you want to end this class? Students will be disconnected.",
+    "closedNotice": "This class has been closed",
     "unknownStudent": "Unknown Student",
     "questionsHint": "Students can ask questions that will appear here in real-time",
     "handsRaised_suffix": "raised",
     "error": {
       "notFound": "Class not found",
       "loadFailed": "Failed to load class details"
-    }
-    ,
+    },
     "actionTitles": {
       "removeStudent": "Remove student",
+      "lowerStudentHand": "Lower hand",
       "markAnswered": "Mark as answered",
       "markPending": "Mark as pending",
-      "removeQuestion": "Remove question"
-    }
+      "removeQuestion": "Remove question",
+      "answerQuestion": "Answer question"
+    },
+    "answerDialogTitle": "Answer Student's Question",
+    "answerPlaceholder": "Type your answer here...",
+    "studentQuestion": "Student's Question",
+    "teacherAnswer": "Answer from {{name}}"
   },
   "studentClass": {
     "pageTitle": "Student - {{className}}",
@@ -116,17 +120,18 @@
     "submitSuccess": "Question submitted",
     "submitFailed": "Failed to submit question",
     "leaveConfirm": "Are you sure you want to leave this class?",
-    "leave": "Leave Class"
-    ,"removedAlert": "You have been removed from the class by the teacher."
+    "leave": "Leave Class",
+    "removedAlert": "You have been removed from the class by the teacher.",
+    "teacherAnswer": "Answer from {{name}}"
   },
   "studentClassExtra": {
     "classClosedAlert": "This class has been closed by the teacher. You will be returned to the home screen."
   },
   "common": {
     "error": "Error",
-    "backToHome": "Back to Home"
-  }
-  ,
+    "backToHome": "Back to Home",
+    "close": "Close"
+  },
   "offline": {
     "banner": "You are offline — some features may be unavailable. Changes will sync when back online."
   },
@@ -149,5 +154,51 @@
     "enable": "Enable Notifications",
     "description": "Get notified when students raise hands or ask questions",
     "enabled": "Notifications enabled"
+  },
+  "handHistory": {
+    "title": "Hand Raise History - {{name}}",
+    "loading": "Loading history...",
+    "noEntries": "No hand raise history yet",
+    "raised": "Raised hand",
+    "loweredByStudent": "Lowered hand",
+    "loweredByTeacher": "Teacher ({{name}}) lowered hand",
+    "totalRaises": "Total raises",
+    "totalLowers": "Total lowers"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Class Statistics & Analytics",
+    "classes": "Classes",
+    "loadingClasses": "Loading classes...",
+    "noClasses": "No classes found",
+    "loadingStats": "Loading statistics...",
+    "code": "Code",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalQuestions": "Total Questions",
+      "answeredQuestions": "Answered Questions",
+      "handRaises": "Hand Raises",
+      "duration": "Duration",
+      "created": "Created"
+    },
+    "studentDetails": "Student Details",
+    "noStudents": "No students joined this class",
+    "studentTable": {
+      "name": "Name",
+      "handRaises": "Hand Raises",
+      "lowers": "Lowers"
+    },
+    "questions": "Questions",
+    "noQuestions": "No questions asked",
+    "questionMeta": {
+      "by": "by",
+      "answered": "✓ Answered",
+      "pending": "⏳ Pending",
+      "answerFrom": "Answer from"
+    },
+    "errorLoading": "Error loading statistics",
+    "closed": "🔒 Closed",
+    "open": "🔓 Open",
+    "unknown": "Unknown"
   }
 }

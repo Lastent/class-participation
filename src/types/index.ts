@@ -21,6 +21,16 @@ export interface Question {
   status?: 'pending' | 'answered'; // Optional for backward compatibility, defaults to 'pending'
   isDeleted?: boolean;
   answeredAt?: Date;
+  answer?: string; // Teacher's answer to the question
+  answeredBy?: string; // Name of teacher who answered
+}
+
+export interface HandHistoryEntry {
+  id: string;
+  action: 'raised' | 'lowered'; // What happened
+  raisedBy: 'student' | 'teacher'; // Who caused this action
+  raisedByName: string | null; // Name of teacher if teacher lowered hand
+  timestamp: Date; // When it happened
 }
 
 // Additional types for the React app
