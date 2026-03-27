@@ -3,6 +3,13 @@
 export interface Class {
   id: string;
   name: string;
+  handRaiseStop?: ParticipationStop;
+  messageStop?: ParticipationStop;
+}
+
+export interface ParticipationStop {
+  enabled: boolean;
+  until?: Date;
 }
 
 export interface Student {
@@ -23,6 +30,10 @@ export interface Question {
   answeredAt?: Date;
   answer?: string; // Teacher's answer to the question
   answeredBy?: string; // Name of teacher who answered
+  imageUrl?: string; // Backward compatibility (single URL)
+  answerImageUrl?: string; // Backward compatibility (single URL)
+  imageUrls?: string[]; // Student attached image URLs
+  answerImageUrls?: string[]; // Teacher attached image URLs in answer
 }
 
 export interface HandHistoryEntry {

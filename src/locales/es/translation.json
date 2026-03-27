@@ -27,6 +27,8 @@
     "askQuestion": "Hacer una Pregunta",
     "submitQuestion": "Enviar Pregunta",
     "submitAnswer": "Enviar Respuesta",
+    "attachImage": "Adjuntar imagen",
+    "removeImage": "Quitar imagen",
     "cancel": "Cancelar",
     "lowerHand": "Bajar la mano",
     "raiseHand": "Levantar la mano",
@@ -107,7 +109,26 @@
     "answerDialogTitle": "Responder la Pregunta del Estudiante",
     "answerPlaceholder": "Escribe tu respuesta aquí...",
     "studentQuestion": "Pregunta del Estudiante",
-    "teacherAnswer": "Respuesta de {{name}}"
+    "teacherAnswer": "Respuesta de {{name}}",
+    "imageInvalidType": "Por favor adjunta un archivo de imagen válido.",
+    "imageTooLarge": "La imagen es demasiado grande. El máximo es 5 MB.",
+    "imageLimitReached": "Puedes adjuntar hasta {{count}} imágenes.",
+    "imageOnlyMessage": "[Imagen adjunta]",
+    "attachmentAlt": "Imagen adjunta",
+    "answerAttachmentAlt": "Imagen adjunta en la respuesta"
+    ,
+    "stops": {
+      "handTitle": "Levantamiento de mano",
+      "messageTitle": "Mensajes",
+      "enableHands": "Detener levantamiento de mano",
+      "enableMessages": "Detener mensajes",
+      "disable": "Desactivar detención",
+      "setTimer": "Configurar temporizador",
+      "inactive": "Permitido",
+      "activeIndefinite": "Detenido hasta desactivarlo manualmente",
+      "activeTimed": "Detenido (quedan {{minutes}} min)",
+      "minutesOption": "{{minutes}} minutos"
+    }
   },
   "studentClass": {
     "pageTitle": "Estudiante - {{className}}",
@@ -119,10 +140,22 @@
     "askDialogPlaceholder": "Escribe tu pregunta aquí...",
     "submitSuccess": "Pregunta enviada",
     "submitFailed": "Error al enviar la pregunta",
+    "imageInvalidType": "Por favor adjunta un archivo de imagen válido.",
+    "imageTooLarge": "La imagen es demasiado grande. El máximo es 5 MB.",
+    "imageLimitReached": "Puedes adjuntar hasta {{count}} imágenes.",
+    "imageOnlyMessage": "[Imagen adjunta]",
+    "attachmentAlt": "Imagen adjunta de la pregunta",
+    "answerAttachmentAlt": "Imagen adjunta de la respuesta",
     "leaveConfirm": "¿Estás seguro que quieres salir de esta clase?",
     "leave": "Salir de la Clase",
     "removedAlert": "Has sido eliminado de la clase por el profesor.",
-    "teacherAnswer": "Respuesta de {{name}}"
+    "teacherAnswer": "Respuesta de {{name}}",
+    "editName": "Editar nombre",
+    "saveName": "Guardar nombre",
+    "stops": {
+      "handBlocked": "El profesor detuvo temporalmente el levantamiento de mano.",
+      "messageBlocked": "El profesor detuvo temporalmente los mensajes."
+    }
   },
   "studentClassExtra": {
     "classClosedAlert": "Esta clase ha sido finalizada por el profesor. Serás devuelto a la pantalla de inicio."
@@ -153,7 +186,16 @@
     "blocked": "Notificaciones bloqueadas. Habilítalas en la configuración del navegador.",
     "enable": "Habilitar Notificaciones",
     "description": "Recibe notificaciones cuando los estudiantes levanten la mano o hagan preguntas",
-    "enabled": "Notificaciones habilitadas"
+    "enabled": "Notificaciones habilitadas",
+    "pause": {
+      "button": "Pausar",
+      "resume": "Reanudar",
+      "pausedFor": "Notificaciones pausadas ({{minutes}} min restantes)",
+      "pausedIndefinitely": "Notificaciones pausadas",
+      "customPlaceholder": "Minutos",
+      "set": "Establecer",
+      "indefinitely": "Pausar indefinidamente"
+    }
   },
   "handHistory": {
     "title": "Historial de Levantamiento de Mano - {{name}}",

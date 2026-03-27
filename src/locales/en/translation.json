@@ -27,6 +27,8 @@
     "askQuestion": "Ask Question",
     "submitQuestion": "Submit Question",
     "submitAnswer": "Submit Answer",
+    "attachImage": "Attach Image",
+    "removeImage": "Remove Image",
     "cancel": "Cancel",
     "lowerHand": "Lower Hand",
     "raiseHand": "Raise Hand",
@@ -107,7 +109,26 @@
     "answerDialogTitle": "Answer Student's Question",
     "answerPlaceholder": "Type your answer here...",
     "studentQuestion": "Student's Question",
-    "teacherAnswer": "Answer from {{name}}"
+    "teacherAnswer": "Answer from {{name}}",
+    "imageInvalidType": "Please attach a valid image file.",
+    "imageTooLarge": "Image is too large. Maximum size is 5 MB.",
+    "imageLimitReached": "You can attach up to {{count}} images.",
+    "imageOnlyMessage": "[Image attachment]",
+    "attachmentAlt": "Attached image",
+    "answerAttachmentAlt": "Attached answer image"
+    ,
+    "stops": {
+      "handTitle": "Hand Raising",
+      "messageTitle": "Messages",
+      "enableHands": "Stop Hand Raising",
+      "enableMessages": "Stop Messages",
+      "disable": "Disable Stop",
+      "setTimer": "Set timer",
+      "inactive": "Allowed",
+      "activeIndefinite": "Stopped until manually disabled",
+      "activeTimed": "Stopped ({{minutes}} min remaining)",
+      "minutesOption": "{{minutes}} minutes"
+    }
   },
   "studentClass": {
     "pageTitle": "Student - {{className}}",
@@ -119,10 +140,22 @@
     "askDialogPlaceholder": "Type your question here...",
     "submitSuccess": "Question submitted",
     "submitFailed": "Failed to submit question",
+    "imageInvalidType": "Please attach a valid image file.",
+    "imageTooLarge": "Image is too large. Maximum size is 5 MB.",
+    "imageLimitReached": "You can attach up to {{count}} images.",
+    "imageOnlyMessage": "[Image attachment]",
+    "attachmentAlt": "Attached question image",
+    "answerAttachmentAlt": "Attached answer image",
     "leaveConfirm": "Are you sure you want to leave this class?",
     "leave": "Leave Class",
     "removedAlert": "You have been removed from the class by the teacher.",
-    "teacherAnswer": "Answer from {{name}}"
+    "teacherAnswer": "Answer from {{name}}",
+    "editName": "Edit name",
+    "saveName": "Save name",
+    "stops": {
+      "handBlocked": "The teacher has temporarily stopped hand raising.",
+      "messageBlocked": "The teacher has temporarily stopped messages."
+    }
   },
   "studentClassExtra": {
     "classClosedAlert": "This class has been closed by the teacher. You will be returned to the home screen."
@@ -153,7 +186,16 @@
     "blocked": "Notifications blocked. Enable in browser settings.",
     "enable": "Enable Notifications",
     "description": "Get notified when students raise hands or ask questions",
-    "enabled": "Notifications enabled"
+    "enabled": "Notifications enabled",
+    "pause": {
+      "button": "Pause",
+      "resume": "Resume",
+      "pausedFor": "Notifications paused ({{minutes}} min remaining)",
+      "pausedIndefinitely": "Notifications paused",
+      "customPlaceholder": "Minutes",
+      "set": "Set",
+      "indefinitely": "Pause indefinitely"
+    }
   },
   "handHistory": {
     "title": "Hand Raise History - {{name}}",

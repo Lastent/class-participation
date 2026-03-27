@@ -14,11 +14,26 @@ import {
   Timestamp,
   deleteField
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, storage } from '../config/firebase';
 import { Class, Student, Question } from '../types';
 import { writeBatch } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+
+type StopField = 'handRaiseStop' | 'messageStop';
 
 export class FirebaseService {
+
+  private getFileExtension(file: File): string {
+    const parts = file.name.split('.');
+    return parts.length > 1 ? parts.pop()!.toLowerCase() : 'jpg';
+  }
+
+  private async uploadImage(file: File, storagePath: string): Promise<string> {
+    const contentType = file.type || 'image/jpeg';
+    const fileRef = ref(storage, storagePath);
+    await uploadBytes(fileRef, file, { contentType });
+    return await getDownloadURL(fileRef);
+  }
   
   /**
    * Creates a new class document
@@ -52,10 +67,47 @@ export class FirebaseService {
       const data = classSnap.data();
       return {
         id: data.id,
-        name: data.name
+        name: data.name,
+        handRaiseStop: {
+          enabled: !!data.handRaiseStop?.enabled,
+          until: data.handRaiseStop?.until ? data.handRaiseStop.until.toDate() : undefined
+        },
+        messageStop: {
+          enabled: !!data.messageStop?.enabled,
+          until: data.messageStop?.until ? data.messageStop.until.toDate() : undefined
+        }
       };
     }
     return null;
+  }
+
+  /**
+   * Enable a class participation stop. If minutes is provided, stop will auto-expire.
+   */
+  async enableParticipationStop(classCode: string, field: StopField, minutes?: number): Promise<void> {
+    const classRef = doc(db, 'classes', classCode);
+    const updates: Record<string, any> = {
+      [`${field}.enabled`]: true
+    };
+
+    if (minutes && minutes > 0) {
+      updates[`${field}.until`] = Timestamp.fromMillis(Date.now() + minutes * 60 * 1000);
+    } else {
+      updates[`${field}.until`] = deleteField();
+    }
+
+    await updateDoc(classRef, updates);
+  }
+
+  /**
+   * Disable a class participation stop immediately.
+   */
+  async disableParticipationStop(classCode: string, field: StopField): Promise<void> {
+    const classRef = doc(db, 'classes', classCode);
+    await updateDoc(classRef, {
+      [`${field}.enabled`]: false,
+      [`${field}.until`]: deleteField()
+    });
   }
 
   /**
@@ -99,6 +151,14 @@ export class FirebaseService {
   async updateStudentStatus(classCode: string, studentId: string, status: 'active' | 'removed') {
     const studentRef = doc(db, 'classes', classCode, 'students', studentId);
     await updateDoc(studentRef, { status });
+  }
+
+  /**
+   * Update a student's name
+   */
+  async updateStudentName(classCode: string, studentId: string, newName: string): Promise<void> {
+    const studentRef = doc(db, 'classes', classCode, 'students', studentId);
+    await updateDoc(studentRef, { name: newName });
   }
 
   /**
@@ -235,28 +295,66 @@ export class FirebaseService {
   /**
    * Updates a question with teacher's answer
    */
-  async answerQuestion(classCode: string, questionId: string, answer: string, answeredBy: string): Promise<void> {
+  async answerQuestion(
+    classCode: string,
+    questionId: string,
+    answer: string,
+    answeredBy: string,
+    answerImageFiles?: File[]
+  ): Promise<void> {
     const questionRef = doc(db, 'classes', classCode, 'questions', questionId);
-    await updateDoc(questionRef, {
+    const updates: Record<string, any> = {
       answer,
       answeredBy,
       status: 'answered',
       answeredAt: Timestamp.now()
-    });
+    };
+
+    if (answerImageFiles && answerImageFiles.length > 0) {
+      const uploadedUrls: string[] = [];
+      for (const file of answerImageFiles) {
+        const ext = this.getFileExtension(file);
+        const storagePath = `classes/${classCode}/questions/${questionId}/answer-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        uploadedUrls.push(await this.uploadImage(file, storagePath));
+      }
+      updates.answerImageUrls = uploadedUrls;
+      updates.answerImageUrl = uploadedUrls[0];
+    }
+
+    await updateDoc(questionRef, updates);
   }
 
   /**
    * Adds a question to a class
    */
-  async addQuestion(classCode: string, questionText: string, studentId: string): Promise<string> {
+  async addQuestion(
+    classCode: string,
+    questionText: string,
+    studentId: string,
+    imageFiles?: File[]
+  ): Promise<string> {
     const questionsRef = collection(db, 'classes', classCode, 'questions');
-    const questionDoc = await addDoc(questionsRef, {
+    const questionDoc = doc(questionsRef);
+    const payload: Record<string, any> = {
       text: questionText,
       studentId,
       createdAt: Timestamp.now(),
       status: 'pending', // New questions start as pending
       isDeleted: false
-    });
+    };
+
+    if (imageFiles && imageFiles.length > 0) {
+      const uploadedUrls: string[] = [];
+      for (const file of imageFiles) {
+        const ext = this.getFileExtension(file);
+        const storagePath = `classes/${classCode}/questions/${questionDoc.id}/question-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        uploadedUrls.push(await this.uploadImage(file, storagePath));
+      }
+      payload.imageUrls = uploadedUrls;
+      payload.imageUrl = uploadedUrls[0];
+    }
+
+    await setDoc(questionDoc, payload);
     
     // We don't need to update the document with its ID since we use doc.id in listeners
     // This avoids the permission denied error on the update operation
@@ -312,7 +410,19 @@ export class FirebaseService {
           isDeleted: false,
           answeredAt: data.answeredAt ? data.answeredAt.toDate() : undefined,
           answer: data.answer,
-          answeredBy: data.answeredBy
+          answeredBy: data.answeredBy,
+          imageUrl: data.imageUrl,
+          answerImageUrl: data.answerImageUrl,
+          imageUrls: Array.isArray(data.imageUrls)
+            ? data.imageUrls
+            : data.imageUrl
+              ? [data.imageUrl]
+              : [],
+          answerImageUrls: Array.isArray(data.answerImageUrls)
+            ? data.answerImageUrls
+            : data.answerImageUrl
+              ? [data.answerImageUrl]
+              : []
         });
       });
       // Sort by createdAt in JavaScript (newest first)

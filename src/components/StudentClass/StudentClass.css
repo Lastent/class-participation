@@ -72,6 +72,81 @@
   font-family: monospace;
 }
 
+/* Edit name inline */
+.name-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-name-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.edit-name-button:hover {
+  opacity: 1;
+}
+
+.edit-name-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-name-input {
+  font-size: 1rem;
+  padding: 4px 8px;
+  border: 2px solid #4facfe;
+  border-radius: 6px;
+  outline: none;
+  width: 180px;
+}
+
+.edit-name-save,
+.edit-name-cancel {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.edit-name-save {
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.edit-name-save:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+}
+
+.edit-name-cancel {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.edit-name-cancel:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.edit-name-save:disabled,
+.edit-name-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .leave-button {
   background: #ff6b6b;
   color: white;
@@ -115,6 +190,26 @@
 .question-button:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hand-button:disabled,
+.question-button:disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.55;
+}
+
+.student-stop-notice {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  background: #fff3cd;
+  border: 1px solid #ffe08a;
+  color: #7c5b00;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
 }
 
 .hand-button.raised {
@@ -182,9 +277,7 @@
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: block;
   transition: box-shadow 0.2s;
 }
 
@@ -210,6 +303,7 @@
 .question-status {
   display: flex;
   align-items: center;
+  margin-top: 8px;
 }
 
 .status-badge {
@@ -316,6 +410,139 @@
 .question-form textarea:disabled {
   background-color: #f5f5f5;
   cursor: not-allowed;
+}
+
+.attachment-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.attach-image-label,
+.remove-attachment-button {
+  border: 1px solid #d0d7e2;
+  background: #f8fbff;
+  color: #2f3d52;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.attach-image-label:hover,
+.remove-attachment-button:hover:not(:disabled) {
+  background: #edf4ff;
+}
+
+.attach-image-label.disabled,
+.remove-attachment-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.attachment-preview-wrap,
+.question-image-wrap {
+  margin-top: 10px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.question-image-box {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  border: 1px solid #d9dee7;
+  overflow: hidden;
+  background: #f2f5f9;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.preview-box {
+  cursor: default;
+}
+
+.question-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.answer-image-wrap {
+  margin-top: 8px;
+}
+
+.remove-image-chip {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.remove-image-chip:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.image-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: -36px;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.image-modal-image {
+  max-width: 95vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #111;
 }
 
 .dialog-actions {

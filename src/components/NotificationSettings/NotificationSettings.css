@@ -87,3 +87,141 @@
   color: #6c757d;
   font-size: 11px;
 }
+
+/* Pause/Resume controls */
+.notification-status.paused {
+  color: #e67e22;
+  background: #fef5e7;
+  border: 1px solid #f0c27a;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.pause-notifications-btn {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: auto;
+}
+
+.pause-notifications-btn:hover {
+  background: #e67e22;
+}
+
+.resume-notifications-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: auto;
+}
+
+.resume-notifications-btn:hover {
+  background: #218838;
+}
+
+.pause-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 10px;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 6px;
+}
+
+.pause-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.pause-presets button {
+  background: #fff;
+  border: 1px solid #f0c27a;
+  color: #e67e22;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pause-presets button:hover {
+  background: #f39c12;
+  color: white;
+  border-color: #f39c12;
+}
+
+.pause-custom {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pause-custom input {
+  width: 70px;
+  padding: 4px 8px;
+  border: 1px solid #f0c27a;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+}
+
+.pause-custom input:focus {
+  border-color: #f39c12;
+}
+
+.pause-custom button {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pause-custom button:hover:not(:disabled) {
+  background: #e67e22;
+}
+
+.pause-custom button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pause-indefinite-btn {
+  background: none;
+  border: 1px dashed #f0c27a;
+  color: #e67e22;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.pause-indefinite-btn:hover {
+  background: #f39c12;
+  color: white;
+  border-style: solid;
+}

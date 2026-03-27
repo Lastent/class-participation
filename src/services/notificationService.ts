@@ -4,6 +4,10 @@ import i18n from 'i18next';
 export class NotificationService {
   private static instance: NotificationService;
   private permission: NotificationPermission = 'default';
+  private paused: boolean = false;
+  private pauseTimer: ReturnType<typeof setTimeout> | null = null;
+  private pauseEndTime: number | null = null;
+  private onPauseChangeCallbacks: Array<(paused: boolean, remainingMinutes: number | null) => void> = [];
 
   constructor() {
     this.checkPermission();
@@ -48,10 +52,79 @@ export class NotificationService {
   }
 
   /**
+   * Pause notifications, optionally for a set number of minutes.
+   * If no duration is given, notifications stay paused until resumed manually.
+   */
+  pauseNotifications(minutes?: number): void {
+    this.paused = true;
+
+    // Clear any existing timer
+    if (this.pauseTimer) {
+      clearTimeout(this.pauseTimer);
+      this.pauseTimer = null;
+    }
+
+    if (minutes && minutes > 0) {
+      this.pauseEndTime = Date.now() + minutes * 60 * 1000;
+      this.pauseTimer = setTimeout(() => {
+        this.resumeNotifications();
+      }, minutes * 60 * 1000);
+    } else {
+      this.pauseEndTime = null;
+    }
+
+    this.notifyPauseChange();
+  }
+
+  /**
+   * Resume notifications
+   */
+  resumeNotifications(): void {
+    this.paused = false;
+    this.pauseEndTime = null;
+    if (this.pauseTimer) {
+      clearTimeout(this.pauseTimer);
+      this.pauseTimer = null;
+    }
+    this.notifyPauseChange();
+  }
+
+  /**
+   * Check if notifications are currently paused
+   */
+  isPaused(): boolean {
+    return this.paused;
+  }
+
+  /**
+   * Get remaining pause time in minutes, or null if paused indefinitely or not paused
+   */
+  getRemainingPauseMinutes(): number | null {
+    if (!this.paused || !this.pauseEndTime) return null;
+    const remaining = Math.max(0, Math.ceil((this.pauseEndTime - Date.now()) / (60 * 1000)));
+    return remaining;
+  }
+
+  /**
+   * Register a callback for pause state changes
+   */
+  onPauseChange(callback: (paused: boolean, remainingMinutes: number | null) => void): () => void {
+    this.onPauseChangeCallbacks.push(callback);
+    return () => {
+      this.onPauseChangeCallbacks = this.onPauseChangeCallbacks.filter(cb => cb !== callback);
+    };
+  }
+
+  private notifyPauseChange(): void {
+    const remaining = this.getRemainingPauseMinutes();
+    this.onPauseChangeCallbacks.forEach(cb => cb(this.paused, remaining));
+  }
+
+  /**
    * Show a notification for hand raised
    */
   showHandRaisedNotification(studentName: string, classCode: string): void {
-    if (this.permission !== 'granted') return;
+    if (this.permission !== 'granted' || this.paused) return;
 
     const title = i18n?.t ? i18n.t('notifications.handRaised.title') : '✋ Hand Raised!';
     const body = i18n?.t ? i18n.t('notifications.handRaised.body', { studentName, classCode }) : `${studentName} has raised their hand in class ${classCode}`;
@@ -80,7 +153,7 @@ export class NotificationService {
    * Show a notification for new question
    */
   showQuestionNotification(studentName: string, questionText: string, classCode: string): void {
-    if (this.permission !== 'granted') return;
+    if (this.permission !== 'granted' || this.paused) return;
 
     // Truncate long questions for notification
     const truncatedQuestion = questionText.length > 100 

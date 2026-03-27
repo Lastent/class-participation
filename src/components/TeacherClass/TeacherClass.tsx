@@ -12,6 +12,47 @@ import HandHistory from '../HandHistory/HandHistory';
 import './TeacherClass.css';
 import { useTranslation } from 'react-i18next';
 
+interface StopConfig {
+  enabled: boolean;
+  until?: Date;
+}
+
+const STOP_MINUTES_OPTIONS = [
+  { key: '5', minutes: 5 },
+  { key: '15', minutes: 15 },
+  { key: '30', minutes: 30 },
+  { key: '60', minutes: 60 }
+];
+
+const toStopConfig = (value: any): StopConfig => {
+  if (!value) return { enabled: false };
+
+  const untilRaw = value.until;
+  let until: Date | undefined;
+
+  if (untilRaw?.toDate) {
+    until = untilRaw.toDate();
+  } else if (untilRaw instanceof Date) {
+    until = untilRaw;
+  } else if (typeof untilRaw === 'number') {
+    until = new Date(untilRaw);
+  }
+
+  return {
+    enabled: !!value.enabled,
+    until
+  };
+};
+
+const isStopActive = (stop: StopConfig, nowMs: number): boolean => {
+  if (!stop.enabled) return false;
+  if (!stop.until) return true;
+  return stop.until.getTime() > nowMs;
+};
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_ATTACHMENTS = 5;
+
 const TeacherClass: React.FC = () => {
   const { classCode } = useParams<{ classCode: string }>();
   const location = useLocation();
@@ -27,14 +68,43 @@ const TeacherClass: React.FC = () => {
   const [showAnswerDialog, setShowAnswerDialog] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [answerText, setAnswerText] = useState('');
+  const [answerImageFiles, setAnswerImageFiles] = useState<File[]>([]);
+  const [answerImagePreviewUrls, setAnswerImagePreviewUrls] = useState<string[]>([]);
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
+  const [handRaiseStop, setHandRaiseStop] = useState<StopConfig>({ enabled: false });
+  const [messageStop, setMessageStop] = useState<StopConfig>({ enabled: false });
+  const [openStopMenu, setOpenStopMenu] = useState<'hands' | 'messages' | null>(null);
+  const [controlsBusy, setControlsBusy] = useState<'hands' | 'messages' | null>(null);
+  const [clockMs, setClockMs] = useState(Date.now());
   
   // Refs for cleanup and tracking previous state
   const studentsUnsubscribe = useRef<(() => void) | null>(null);
   const questionsUnsubscribe = useRef<(() => void) | null>(null);
+  const classUnsubscribe = useRef<(() => void) | null>(null);
   const previousStudents = useRef<Student[]>([]);
   const previousQuestions = useRef<Question[]>([]);
   const notificationsEnabledRef = useRef<boolean>(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setClockMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      answerImagePreviewUrls.forEach((url) => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [answerImagePreviewUrls]);
 
   useEffect(() => {
     if (!classCode) {
@@ -56,6 +126,8 @@ const TeacherClass: React.FC = () => {
       firebaseService.getClass(classCode).then(classData => {
         if (classData) {
           setClassName(classData.name);
+          setHandRaiseStop(toStopConfig(classData.handRaiseStop));
+          setMessageStop(toStopConfig(classData.messageStop));
         } else {
             setError(t('teacherClass.error.notFound'));
           }
@@ -101,6 +173,13 @@ const TeacherClass: React.FC = () => {
       setQuestions(updatedQuestions);
     });
 
+    classUnsubscribe.current = firebaseService.onClassUpdate(classCode, (classData) => {
+      if (!classData) return;
+      if (classData.name) setClassName(classData.name);
+      setHandRaiseStop(toStopConfig(classData.handRaiseStop));
+      setMessageStop(toStopConfig(classData.messageStop));
+    });
+
     // Cleanup function
     return () => {
       if (studentsUnsubscribe.current) {
@@ -109,8 +188,58 @@ const TeacherClass: React.FC = () => {
       if (questionsUnsubscribe.current) {
         questionsUnsubscribe.current();
       }
+      if (classUnsubscribe.current) {
+        classUnsubscribe.current();
+      }
     };
   }, [classCode, location.state, navigate, t]);
+
+  const handleEnableStop = async (type: 'hands' | 'messages', minutes?: number) => {
+    if (!classCode) return;
+
+    const field = type === 'hands' ? 'handRaiseStop' : 'messageStop';
+    setControlsBusy(type);
+    try {
+      await firebaseService.enableParticipationStop(classCode, field, minutes);
+      setOpenStopMenu(null);
+    } catch (err) {
+      console.error('Error enabling stop:', err);
+      setError(t('common.error'));
+    } finally {
+      setControlsBusy(null);
+    }
+  };
+
+  const handleDisableStop = async (type: 'hands' | 'messages') => {
+    if (!classCode) return;
+
+    const field = type === 'hands' ? 'handRaiseStop' : 'messageStop';
+    setControlsBusy(type);
+    try {
+      await firebaseService.disableParticipationStop(classCode, field);
+    } catch (err) {
+      console.error('Error disabling stop:', err);
+      setError(t('common.error'));
+    } finally {
+      setControlsBusy(null);
+    }
+  };
+
+  const getRemainingMinutes = (stop: StopConfig): number | null => {
+    if (!stop.until) return null;
+    const diffMs = stop.until.getTime() - clockMs;
+    if (diffMs <= 0) return 0;
+    return Math.ceil(diffMs / (1000 * 60));
+  };
+
+  const getStopStatus = (stop: StopConfig): string => {
+    const active = isStopActive(stop, clockMs);
+    if (!active) return t('teacherClass.stops.inactive');
+
+    const remaining = getRemainingMinutes(stop);
+    if (remaining === null) return t('teacherClass.stops.activeIndefinite');
+    return t('teacherClass.stops.activeTimed', { minutes: remaining });
+  };
 
   const handleRemoveQuestion = async (questionId: string) => {
     try {
@@ -123,11 +252,24 @@ const TeacherClass: React.FC = () => {
   const handleOpenAnswerDialog = (question: Question) => {
     setSelectedQuestion(question);
     setAnswerText(question.answer || '');
+    answerImagePreviewUrls.forEach((url) => {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+    setAnswerImageFiles([]);
+    setAnswerImagePreviewUrls(
+      (question.answerImageUrls && question.answerImageUrls.length > 0)
+        ? question.answerImageUrls
+        : question.answerImageUrl
+          ? [question.answerImageUrl]
+          : []
+    );
     setShowAnswerDialog(true);
   };
 
   const handleSubmitAnswer = async () => {
-    if (!selectedQuestion || !answerText.trim()) {
+    if (!selectedQuestion || (!answerText.trim() && answerImageFiles.length === 0 && !(selectedQuestion.answerImageUrls && selectedQuestion.answerImageUrls.length > 0) && !selectedQuestion.answerImageUrl)) {
       return;
     }
 
@@ -136,15 +278,93 @@ const TeacherClass: React.FC = () => {
         classCode!,
         selectedQuestion.id,
         answerText.trim(),
-        'Teacher' // You might want to use actual teacher name here
+        'Teacher', // You might want to use actual teacher name here
+        answerImageFiles.length > 0 ? answerImageFiles : undefined
       );
-      setShowAnswerDialog(false);
-      setSelectedQuestion(null);
-      setAnswerText('');
+      closeAnswerDialog();
     } catch (err) {
       console.error('Error answering question:', err);
       setError(t('common.error'));
     }
+  };
+
+  const addAnswerImageFiles = (files: File[]) => {
+    if (files.length === 0) return;
+
+    const currentCount = answerImageFiles.length;
+    if (currentCount >= MAX_ATTACHMENTS) {
+      setError(t('teacherClass.imageLimitReached', { count: MAX_ATTACHMENTS }));
+      return;
+    }
+
+    const remainingSlots = MAX_ATTACHMENTS - currentCount;
+    const validFiles: File[] = [];
+    const previewUrls: string[] = [];
+
+    for (const file of files.slice(0, remainingSlots)) {
+      if (!file.type.startsWith('image/')) {
+        setError(t('teacherClass.imageInvalidType'));
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        setError(t('teacherClass.imageTooLarge'));
+        continue;
+      }
+      validFiles.push(file);
+      previewUrls.push(URL.createObjectURL(file));
+    }
+
+    if (files.length > remainingSlots) {
+      setError(t('teacherClass.imageLimitReached', { count: MAX_ATTACHMENTS }));
+    }
+
+    if (validFiles.length > 0) {
+      setAnswerImageFiles((prev) => [...prev, ...validFiles]);
+      setAnswerImagePreviewUrls((prev) => [...prev, ...previewUrls]);
+    }
+  };
+
+  const handleAnswerImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    addAnswerImageFiles(files);
+    e.target.value = '';
+  };
+
+  const handleAnswerPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = Array.from(e.clipboardData.items || []);
+    const imageFiles = items
+      .filter((item) => item.type.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => !!file);
+
+    if (imageFiles.length === 0) return;
+
+    e.preventDefault();
+    addAnswerImageFiles(imageFiles);
+  };
+
+  const removeAnswerImage = (index: number) => {
+    setAnswerImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setAnswerImagePreviewUrls((prev) => {
+      const target = prev[index];
+      if (target && target.startsWith('blob:')) {
+        URL.revokeObjectURL(target);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const closeAnswerDialog = () => {
+    setShowAnswerDialog(false);
+    setSelectedQuestion(null);
+    setAnswerText('');
+    answerImagePreviewUrls.forEach((url) => {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+    setAnswerImageFiles([]);
+    setAnswerImagePreviewUrls([]);
   };
 
   const handleMarkQuestionAnswered = async (questionId: string) => {
@@ -206,10 +426,21 @@ const TeacherClass: React.FC = () => {
   const activeStudents = students.filter(s => s.status !== 'removed');
   const handsRaisedCount = activeStudents.filter(s => s.handRaised).length;
   const joinUrl = `${window.location.origin}/join/${classCode}`;
+  const handStopActive = isStopActive(handRaiseStop, clockMs);
+  const messageStopActive = isStopActive(messageStop, clockMs);
   
   // Calculate question counts by status
   const pendingQuestions = questions.filter(q => q.status !== 'answered').length;
   const answeredQuestions = questions.filter(q => q.status === 'answered').length;
+  const sortedQuestions = [...questions].sort((a, b) => {
+    const aPendingRank = a.status === 'answered' ? 1 : 0;
+    const bPendingRank = b.status === 'answered' ? 1 : 0;
+    if (aPendingRank !== bPendingRank) return aPendingRank - bPendingRank;
+
+    const aTime = a.createdAt ? a.createdAt.getTime() : 0;
+    const bTime = b.createdAt ? b.createdAt.getTime() : 0;
+    return bTime - aTime;
+  });
 
   if (error) {
     return (
@@ -259,6 +490,82 @@ const TeacherClass: React.FC = () => {
         onSettingsChange={handleNotificationSettingsChange}
         enabled={notificationsEnabled}
       />
+
+      <div className="participation-stop-controls">
+        <div className="stop-card">
+          <div className="stop-card-info">
+            <h3>{t('teacherClass.stops.handTitle')}</h3>
+            <p>{getStopStatus(handRaiseStop)}</p>
+          </div>
+          <div className="split-stop-button-group">
+            <button
+              className={`stop-main-button ${handStopActive ? 'active' : ''}`}
+              onClick={() => handStopActive ? handleDisableStop('hands') : handleEnableStop('hands')}
+              disabled={controlsBusy === 'hands'}
+            >
+              {handStopActive ? t('teacherClass.stops.disable') : t('teacherClass.stops.enableHands')}
+            </button>
+            <button
+              className="stop-menu-button"
+              onClick={() => setOpenStopMenu(openStopMenu === 'hands' ? null : 'hands')}
+              disabled={controlsBusy === 'hands'}
+              title={t('teacherClass.stops.setTimer')}
+            >
+              ▾
+            </button>
+            {openStopMenu === 'hands' && (
+              <div className="stop-menu-dropdown">
+                {STOP_MINUTES_OPTIONS.map(option => (
+                  <button
+                    key={option.key}
+                    className="stop-menu-item"
+                    onClick={() => handleEnableStop('hands', option.minutes)}
+                  >
+                    {t('teacherClass.stops.minutesOption', { minutes: option.minutes })}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="stop-card">
+          <div className="stop-card-info">
+            <h3>{t('teacherClass.stops.messageTitle')}</h3>
+            <p>{getStopStatus(messageStop)}</p>
+          </div>
+          <div className="split-stop-button-group">
+            <button
+              className={`stop-main-button ${messageStopActive ? 'active' : ''}`}
+              onClick={() => messageStopActive ? handleDisableStop('messages') : handleEnableStop('messages')}
+              disabled={controlsBusy === 'messages'}
+            >
+              {messageStopActive ? t('teacherClass.stops.disable') : t('teacherClass.stops.enableMessages')}
+            </button>
+            <button
+              className="stop-menu-button"
+              onClick={() => setOpenStopMenu(openStopMenu === 'messages' ? null : 'messages')}
+              disabled={controlsBusy === 'messages'}
+              title={t('teacherClass.stops.setTimer')}
+            >
+              ▾
+            </button>
+            {openStopMenu === 'messages' && (
+              <div className="stop-menu-dropdown">
+                {STOP_MINUTES_OPTIONS.map(option => (
+                  <button
+                    key={option.key}
+                    className="stop-menu-item"
+                    onClick={() => handleEnableStop('messages', option.minutes)}
+                  >
+                    {t('teacherClass.stops.minutesOption', { minutes: option.minutes })}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="class-content">
         <div className="students-section">
@@ -331,14 +638,18 @@ const TeacherClass: React.FC = () => {
                 <p>{t('teacherClass.questionsHint')}</p>
               </div>
             ) : (
-              questions.map(question => (
+              sortedQuestions.map(question => (
                 <div key={question.id} className={`question-card ${question.status === 'answered' ? 'answered' : 'pending'}`}>
                   <div className="question-content">
                     <div className="question-header">
                       <div className="question-text">{question.text}</div>
                       <div className="question-status">
-                        <span className={`status-badge ${question.status || 'pending'}`}>
-                          {question.status === 'answered' ? `✓ ${t('teacherClass.answered')}` : `⏳ ${t('teacherClass.pending')}`}
+                        <span
+                          className={`status-badge ${question.status || 'pending'}`}
+                          title={question.status === 'answered' ? t('teacherClass.answered') : t('teacherClass.pending')}
+                          aria-label={question.status === 'answered' ? t('teacherClass.answered') : t('teacherClass.pending')}
+                        >
+                          {question.status === 'answered' ? '✓' : '⏳'}
                         </span>
                       </div>
                     </div>
@@ -350,10 +661,54 @@ const TeacherClass: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    {question.answer && (
+                    {((question.imageUrls && question.imageUrls.length > 0)
+                      ? question.imageUrls
+                      : question.imageUrl
+                        ? [question.imageUrl]
+                        : []).length > 0 && (
+                      <div className="image-grid">
+                        {((question.imageUrls && question.imageUrls.length > 0)
+                          ? question.imageUrls
+                          : question.imageUrl
+                            ? [question.imageUrl]
+                            : []).map((url, idx) => (
+                          <button
+                            key={`${question.id}-qimg-${idx}`}
+                            type="button"
+                            className="question-image-box"
+                            onClick={() => setImageModalUrl(url)}
+                          >
+                            <img src={url} alt={t('teacherClass.attachmentAlt')} className="question-image" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {(question.answer || question.answerImageUrl || (question.answerImageUrls && question.answerImageUrls.length > 0)) && (
                       <div className="question-answer">
                         <div className="answer-label">{t('teacherClass.teacherAnswer', { name: question.answeredBy || 'Teacher' })}</div>
-                        <div className="answer-text">{question.answer}</div>
+                        {question.answer && <div className="answer-text">{question.answer}</div>}
+                        {((question.answerImageUrls && question.answerImageUrls.length > 0)
+                          ? question.answerImageUrls
+                          : question.answerImageUrl
+                            ? [question.answerImageUrl]
+                            : []).length > 0 && (
+                          <div className="image-grid answer-image-wrap">
+                            {((question.answerImageUrls && question.answerImageUrls.length > 0)
+                              ? question.answerImageUrls
+                              : question.answerImageUrl
+                                ? [question.answerImageUrl]
+                                : []).map((url, idx) => (
+                              <button
+                                key={`${question.id}-aimg-${idx}`}
+                                type="button"
+                                className="question-image-box"
+                                onClick={() => setImageModalUrl(url)}
+                              >
+                                <img src={url} alt={t('teacherClass.answerAttachmentAlt')} className="question-image" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -398,13 +753,13 @@ const TeacherClass: React.FC = () => {
       </div>
 
       {showAnswerDialog && selectedQuestion && (
-        <div className="dialog-overlay" onClick={() => setShowAnswerDialog(false)}>
+        <div className="dialog-overlay" onClick={closeAnswerDialog}>
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3>{t('teacherClass.answerDialogTitle')}</h3>
               <button 
                 className="close-button"
-                onClick={() => setShowAnswerDialog(false)}
+                onClick={closeAnswerDialog}
               >
                 ×
               </button>
@@ -413,34 +768,104 @@ const TeacherClass: React.FC = () => {
             <div className="dialog-body">
               <div className="question-preview">
                 <strong>{t('teacherClass.studentQuestion')}:</strong>
-                <p>{selectedQuestion.text}</p>
+                <p>{selectedQuestion.text || t('teacherClass.imageOnlyMessage')}</p>
+                {((selectedQuestion.imageUrls && selectedQuestion.imageUrls.length > 0)
+                  ? selectedQuestion.imageUrls
+                  : selectedQuestion.imageUrl
+                    ? [selectedQuestion.imageUrl]
+                    : []).length > 0 && (
+                  <div className="image-grid">
+                    {((selectedQuestion.imageUrls && selectedQuestion.imageUrls.length > 0)
+                      ? selectedQuestion.imageUrls
+                      : selectedQuestion.imageUrl
+                        ? [selectedQuestion.imageUrl]
+                        : []).map((url, idx) => (
+                      <button
+                        key={`preview-question-${idx}`}
+                        type="button"
+                        className="question-image-box"
+                        onClick={() => setImageModalUrl(url)}
+                      >
+                        <img src={url} alt={t('teacherClass.attachmentAlt')} className="question-image" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <textarea
                 value={answerText}
                 onChange={(e) => setAnswerText(e.target.value)}
+                onPaste={handleAnswerPaste}
                 placeholder={t('teacherClass.answerPlaceholder')}
                 maxLength={1000}
                 rows={6}
                 autoFocus
               />
+
+              <div className="attachment-controls">
+                <label className="attach-image-label">
+                  {t('buttons.attachImage')}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAnswerImageInputChange}
+                    hidden
+                  />
+                </label>
+              </div>
+
+              {answerImagePreviewUrls.length > 0 && (
+                <div className="image-grid attachment-preview-wrap">
+                  {answerImagePreviewUrls.map((url, idx) => (
+                    <div key={`preview-answer-${idx}`} className="question-image-box preview-box">
+                      <img src={url} alt={t('teacherClass.answerAttachmentAlt')} className="question-image" />
+                      <button
+                        type="button"
+                        className="remove-image-chip"
+                        onClick={() => removeAnswerImage(idx)}
+                        aria-label={t('buttons.removeImage')}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="dialog-actions">
               <button 
                 className="cancel-button"
-                onClick={() => setShowAnswerDialog(false)}
+                onClick={closeAnswerDialog}
               >
                 {t('buttons.cancel')}
               </button>
               <button 
                 className="submit-button"
                 onClick={handleSubmitAnswer}
-                disabled={!answerText.trim()}
+                disabled={
+                  !answerText.trim()
+                  && answerImageFiles.length === 0
+                  && !(selectedQuestion?.answerImageUrls && selectedQuestion.answerImageUrls.length > 0)
+                  && !selectedQuestion?.answerImageUrl
+                }
               >
                 {t('buttons.submitAnswer')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {imageModalUrl && (
+        <div className="image-modal-overlay" onClick={() => setImageModalUrl(null)}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={() => setImageModalUrl(null)}>
+              ×
+            </button>
+            <img src={imageModalUrl} alt={t('teacherClass.attachmentAlt')} className="image-modal-image" />
           </div>
         </div>
       )}
